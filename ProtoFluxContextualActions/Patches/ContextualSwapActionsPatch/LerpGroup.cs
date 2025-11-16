@@ -28,13 +28,22 @@ static partial class ContextualSwapActionsPatch
 
 			// in theory, this check shouldn't be needed
 			// in practice, https://github.com/Yellow-Dog-Man/Resonite-Issues/issues/3319
-			if (coder.Property<bool>("SupportsAddSub").Value)
+			if (coder.Property<bool>("SupportsSmoothLerp").Value)
 			{
 				yield return new(typeof(ValueSmoothLerp<>).MakeGenericType(opType));
+			}
+			if (coder.Property<bool>("SupportsConstantLerp").Value)
+			{
 				yield return new(typeof(ValueConstantLerp<>).MakeGenericType(opType));
+			}
+			if (coder.Property<bool>("SupportsLerp").Value)
+			{
 				yield return new(typeof(ValueLerp<>).MakeGenericType(opType));
 				yield return new(typeof(ValueLerpUnclamped<>).MakeGenericType(opType));
 				yield return new(typeof(ValueMultiLerp<>).MakeGenericType(opType));
+			}
+			if (coder.Property<bool>("SupportsInverseLerp").Value)
+			{
 				yield return new(typeof(ValueInverseLerp<>).MakeGenericType(opType));
 			}
 		}

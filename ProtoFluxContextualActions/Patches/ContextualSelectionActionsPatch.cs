@@ -439,8 +439,13 @@ internal static class ContextualSelectionActionsPatch
 						yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
 						// yield return new MenuItem(typeof(ValueNotEquals<>).MakeGenericType(outputType));
 					}
+
 					// New elements placed at the end
-					if (coder.Property<bool>("SupportsAddSub").Value)
+					if (coder.Property<bool>("SupportsLerp").Value)
+					{
+						yield return new MenuItem(typeof(ValueLerp<>).MakeGenericType(outputType));
+					}
+					if (coder.Property<bool>("SupportsSmoothLerp").Value)
 					{
 						yield return new MenuItem(typeof(ValueSmoothLerp<>).MakeGenericType(outputType));
 					}
@@ -1085,7 +1090,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(RandomFloat));
 		}
 
-		yield return new MenuItem(typeof(DataModelBooleanToggle));
+		if (inputType == typeof(bool)) yield return new MenuItem(typeof(DataModelBooleanToggle));
 
 		var variableInput = GetNodeForType(inputType, [
 			new NodeTypeRecord(typeof(LocalValue<>), null, null),
@@ -1156,12 +1161,12 @@ internal static class ContextualSelectionActionsPatch
 			.GroupBy(i => i.Type, i => i.Node)
 			.Select(i => (i.Key, (IEnumerable<Type>)i))
 			.Concat([
-			  (typeof(Rect), [typeof(RectFromXYWH), typeof(RectFromMinMax), typeof(RectFromPositionSize)]),
-			(typeof(ZitaParameters), [typeof(ConstructZitaParameters)]),
-			(typeof(SphericalHarmonicsL1<>),  [typeof(PackSH1<>)]),
-			(typeof(SphericalHarmonicsL2<>),  [typeof(PackSH2<>)]),
-			(typeof(SphericalHarmonicsL3<>),  [typeof(PackSH3<>)]),
-			(typeof(SphericalHarmonicsL4<>),  [typeof(PackSH4<>)]),
+				(typeof(Rect), [typeof(RectFromXYWH), typeof(RectFromMinMax), typeof(RectFromPositionSize)]),
+				(typeof(ZitaParameters), [typeof(ConstructZitaParameters)]),
+				(typeof(SphericalHarmonicsL1<>),  [typeof(PackSH1<>)]),
+				(typeof(SphericalHarmonicsL2<>),  [typeof(PackSH2<>)]),
+				(typeof(SphericalHarmonicsL3<>),  [typeof(PackSH3<>)]),
+				(typeof(SphericalHarmonicsL4<>),  [typeof(PackSH4<>)]),
 			])
 			.ToDictionary(i => i.Item1, i => i.Item2.ToList());
 
