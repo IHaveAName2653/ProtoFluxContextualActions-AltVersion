@@ -96,10 +96,6 @@
         <ReferencePath>$(ResoniteAssemblyPath);$(ReferencePath)</ReferencePath>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <DefineConstants>$(DefineConstants);#DEBUG</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
         <Reference Include="@(ResoniteReference)">
             <Name>%(ResoniteReference.Identity)</Name>
