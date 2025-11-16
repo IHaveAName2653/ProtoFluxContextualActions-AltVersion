@@ -8,6 +8,7 @@ using System.Reflection;
 namespace ProtoFluxContextualActions;
 
 using System.Collections.Generic;
+using FrooxEngine;
 using global::ProtoFluxContextualActions.Utils;
 using Renderite.Shared;
 
@@ -32,6 +33,8 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 	[AutoRegisterConfigKey]
 	public static readonly ModConfigurationKey<Key> KeyBind = new ModConfigurationKey<Key>("The Key", "What the key is", () => Key.BackQuote);
+
+
 	public static Key TARGETKEY()
 	{
 		if (Config != null) return Config.GetValue(KeyBind);
@@ -85,6 +88,8 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 		PatchCategories();
 		harmony.PatchAllUncategorized(ModAssembly);
+
+		FluxRecipeConfig.OnInit();
 	}
 
 #if DEBUG
@@ -98,6 +103,7 @@ public class ProtoFluxContextualActions : ResoniteMod
 	{
 		PatchCategories();
 		harmony.PatchAllUncategorized(ModAssembly);
+		FluxRecipeConfig.OnInit();
 	}
 #endif
 

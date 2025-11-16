@@ -80,6 +80,16 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="Build\**" />
+      <EmbeddedResource Remove="Build\**" />
+      <None Remove="Build\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="FluxRecipeConfig.cs~RF26221b9.TMP" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ResoniteReference Include="FrooxEngine" />
         <ResoniteReference Include="ProtoFlux.Core" />
         <ResoniteReference Include="ProtoFlux.Nodes.Core" />
@@ -89,6 +99,7 @@
         <ResoniteReference Include="Elements.Quantity" />
         <ResoniteReference Include="Renderite.Shared" />
         <ResoniteReference Include="SharpPipe" />
+        <ResoniteReference Include="Newtonsoft.Json" />
     </ItemGroup>
 
     <PropertyGroup>

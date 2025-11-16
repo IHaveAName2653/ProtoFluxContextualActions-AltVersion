@@ -138,14 +138,12 @@ internal static class ContextualSelectionActionsPatch
 
 
 		var elementProxy = ____currentProxy.Target;
-		var items = MenuItems(__instance).Take(12).ToArray();
+		var items = MenuItems(__instance).Take(12).ToList();
 		// todo: pages / menu
 
 
-		if (items.Length != 0)
+		if (items.Count != 0)
 		{
-
-
 			__instance.StartTask(async () =>
 			{
 				var menu = await __instance.LocalUser.OpenContextMenu(__instance, __instance.Slot);
@@ -240,6 +238,20 @@ internal static class ContextualSelectionActionsPatch
 						}
 					default:
 						throw new Exception("found items for unsupported protoflux contextual action type");
+				}
+
+				var customItems = FluxRecipeConfig.GetItems(__instance, elementProxy).Take(12).ToList();
+
+				foreach (var customItem in customItems)
+				{
+					var label = (LocaleString)customItem.DisplayName;
+					var menuItem = menu.AddItem(in label, (Uri?)null, colorX.LightGray);
+					menuItem.Button.LocalPressed += (button, data) =>
+					{
+						customItem.onMenuPress(__instance, elementProxy, customItem.recipe);
+						__instance.LocalUser.CloseContextMenu(__instance);
+						CleanupDraggedWire(__instance);
+					};
 				}
 			});
 
@@ -503,6 +515,8 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(ChildrenCount));
 			yield return new MenuItem(typeof(FindChildByTag)); // use tag here because it has less inputs which fits better when going to swap.
 			yield return new MenuItem(typeof(GetSlotName));
+
+			yield return new MenuItem(typeof(DestroySlot));
 
 			yield return new MenuItem(typeof(ObjectRelay<Slot>), name: "Foreach Child", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
 			{
