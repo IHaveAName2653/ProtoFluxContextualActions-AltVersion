@@ -75,17 +75,17 @@ internal static class ContextualReferenceActionsPatch
 				foreach (var menuItem in items)
 				{
 					AddMenuItem(__instance, menu, menuItem, n =>
-			  {
-				  // todo: sanity checking rather than assuming
-				  if (n.NodeGlobalRefCount > 0)
-				  {
-					  var globalSyncRef = n.GetGlobalRef(0);
-					  var globalType = globalSyncRef.TargetType.GenericTypeArguments[0];
-					  var globalRef = (IGlobalValueProxy)n.Slot.AttachComponent(typeof(GlobalReference<>).MakeGenericType(globalType));
-					  globalSyncRef.TrySet(globalRef);
-					  globalRef.TrySetValue(grabbedReference);
-				  }
-			  });
+					{
+						// todo: sanity checking rather than assuming
+						if (n.NodeGlobalRefCount > 0)
+						{
+							var globalSyncRef = n.GetGlobalRef(0);
+							var globalType = globalSyncRef.TargetType.GenericTypeArguments[0];
+							var globalRef = (IGlobalValueProxy)n.Slot.AttachComponent(typeof(GlobalReference<>).MakeGenericType(globalType));
+							globalSyncRef.TrySet(globalRef);
+							globalRef.TrySetValue(grabbedReference);
+						}
+					});
 				}
 			});
 
@@ -123,7 +123,7 @@ internal static class ContextualReferenceActionsPatch
 	}
 
 	public static IEnumerable<Type> NodeTypes() =>
-	  Traverse.Create(typeof(ProtoFluxHelper)).Field<Dictionary<Type, Type>>("protoFluxToBindingMapping").Value.Keys;
+		Traverse.Create(typeof(ProtoFluxHelper)).Field<Dictionary<Type, Type>>("protoFluxToBindingMapping").Value.Keys;
 
 	[HarmonyReversePatch]
 	[HarmonyPatch(typeof(ProtoFluxHelper), "GetNodeForType")]

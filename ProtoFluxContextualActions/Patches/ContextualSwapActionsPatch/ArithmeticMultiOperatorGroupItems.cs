@@ -11,11 +11,11 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> ArithmeticMultiOperatorGroup = [
-	  typeof(ValueAddMulti<>),
-	typeof(ValueSubMulti<>),
-	typeof(ValueMulMulti<>),
-	typeof(ValueDivMulti<>),
-  ];
+		typeof(ValueAddMulti<>),
+		typeof(ValueSubMulti<>),
+		typeof(ValueMulMulti<>),
+		typeof(ValueDivMulti<>),
+	];
 
 	internal static IEnumerable<MenuItem> ArithmeticMultiOperatorGroupItems(ContextualContext context)
 	{
@@ -25,9 +25,9 @@ static partial class ContextualSwapActionsPatch
 			var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(opType));
 
 			static MenuItem MultiMenuItem(Type nodeType) => new(
-			  node: nodeType,
-			  name: nodeType.GetNiceTypeName(),
-			  connectionTransferType: ConnectionTransferType.ByIndexLossy
+				node: nodeType,
+				name: nodeType.GetNiceTypeName(),
+				connectionTransferType: ConnectionTransferType.ByIndexLossy
 			);
 
 			if (coder.Property<bool>("SupportsAddSub").Value)

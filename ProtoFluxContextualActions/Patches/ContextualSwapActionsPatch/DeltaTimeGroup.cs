@@ -7,11 +7,11 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	public static readonly HashSet<Type> DeltaTimeGroup = [
-	  typeof(DeltaTime),
-	typeof(SmoothDeltaTime),
-	typeof(InvertedDeltaTime),
-	typeof(InvertedSmoothDeltaTime),
-  ];
+		typeof(DeltaTime),
+		typeof(SmoothDeltaTime),
+		typeof(InvertedDeltaTime),
+		typeof(InvertedSmoothDeltaTime),
+	];
 
 	internal static IEnumerable<MenuItem> DeltaTimeGroupItems(ContextualContext context)
 	{

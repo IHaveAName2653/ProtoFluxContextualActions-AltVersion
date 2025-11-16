@@ -10,9 +10,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> ArithmeticNegateGroup = [
-	  typeof(ValueNegate<>),
-	typeof(ValuePlusMinus<>),
-  ];
+		typeof(ValueNegate<>),
+		typeof(ValuePlusMinus<>),
+	];
 
 
 	internal static IEnumerable<MenuItem> ArithmeticNegateGroupItems(ContextualContext context)

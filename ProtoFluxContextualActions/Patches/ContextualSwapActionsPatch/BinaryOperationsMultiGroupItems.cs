@@ -19,9 +19,9 @@ static partial class ContextualSwapActionsPatch
 			foreach (var match in matchingNodes)
 			{
 				yield return new MenuItem(
-				  node: match,
-				  name: FormatMultiName(match),
-				  connectionTransferType: ConnectionTransferType.ByIndexLossy
+					node: match,
+					name: FormatMultiName(match),
+					connectionTransferType: ConnectionTransferType.ByIndexLossy
 				);
 			}
 		}

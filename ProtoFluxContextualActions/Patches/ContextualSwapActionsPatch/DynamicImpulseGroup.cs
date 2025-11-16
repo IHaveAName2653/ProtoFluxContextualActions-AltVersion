@@ -10,13 +10,13 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> DynamicImpulseGroup = [
-	  typeof(DynamicImpulseReceiver),
-	typeof(DynamicImpulseTrigger),
-	typeof(DynamicImpulseReceiverWithValue<>),
-	typeof(DynamicImpulseReceiverWithObject<>),
-	typeof(DynamicImpulseTriggerWithValue<>),
-	typeof(DynamicImpulseTriggerWithObject<>),
-  ];
+		typeof(DynamicImpulseReceiver),
+		typeof(DynamicImpulseTrigger),
+		typeof(DynamicImpulseReceiverWithValue<>),
+		typeof(DynamicImpulseReceiverWithObject<>),
+		typeof(DynamicImpulseTriggerWithValue<>),
+		typeof(DynamicImpulseTriggerWithObject<>),
+	];
 
 	internal static IEnumerable<MenuItem> DynamicImpulseGroupItems(ContextualContext context)
 	{
@@ -31,13 +31,13 @@ static partial class ContextualSwapActionsPatch
 				Type targetType = inputType.InputType;
 
 				var variableInput = GetNodeForType(targetType, [
-				  new NodeTypeRecord(typeof(DynamicImpulseReceiverWithValue<>), null, null),
-		  new NodeTypeRecord(typeof(DynamicImpulseReceiverWithObject<>), null, null),
-		]);
+					new NodeTypeRecord(typeof(DynamicImpulseReceiverWithValue<>), null, null),
+					new NodeTypeRecord(typeof(DynamicImpulseReceiverWithObject<>), null, null),
+				]);
 				var variableInput2 = GetNodeForType(targetType, [
-				  new NodeTypeRecord(typeof(DynamicImpulseTriggerWithValue<>), null, null),
-		  new NodeTypeRecord(typeof(DynamicImpulseTriggerWithObject<>), null, null),
-		]);
+					new NodeTypeRecord(typeof(DynamicImpulseTriggerWithValue<>), null, null),
+					new NodeTypeRecord(typeof(DynamicImpulseTriggerWithObject<>), null, null),
+				]);
 
 				yield return new(variableInput);
 				yield return new(variableInput2);
@@ -48,13 +48,13 @@ static partial class ContextualSwapActionsPatch
 				Type targetType = outputType.OutputType;
 
 				var variableInput = GetNodeForType(targetType, [
-				  new NodeTypeRecord(typeof(DynamicImpulseReceiverWithValue<>), null, null),
-		  new NodeTypeRecord(typeof(DynamicImpulseReceiverWithObject<>), null, null),
-		]);
+					new NodeTypeRecord(typeof(DynamicImpulseReceiverWithValue<>), null, null),
+					new NodeTypeRecord(typeof(DynamicImpulseReceiverWithObject<>), null, null),
+				]);
 				var variableInput2 = GetNodeForType(targetType, [
-				  new NodeTypeRecord(typeof(DynamicImpulseTriggerWithValue<>), null, null),
-		  new NodeTypeRecord(typeof(DynamicImpulseTriggerWithObject<>), null, null),
-		]);
+					new NodeTypeRecord(typeof(DynamicImpulseTriggerWithValue<>), null, null),
+					new NodeTypeRecord(typeof(DynamicImpulseTriggerWithObject<>), null, null),
+				]);
 
 				yield return new(variableInput);
 				yield return new(variableInput2);

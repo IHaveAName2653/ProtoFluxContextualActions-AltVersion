@@ -7,10 +7,10 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> KeyStateGroup = [
-	  typeof(KeyHeld),
-	typeof(KeyPressed),
-	typeof(KeyReleased),
-  ];
+		typeof(KeyHeld),
+		typeof(KeyPressed),
+		typeof(KeyReleased),
+	];
 
 	internal static IEnumerable<MenuItem> KeyStateGroupItems(ContextualContext context)
 	{

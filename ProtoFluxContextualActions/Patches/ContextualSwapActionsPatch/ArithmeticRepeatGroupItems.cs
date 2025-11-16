@@ -11,9 +11,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> ArithmeticRepeatGroup = [
-	  typeof(ValueMod<>),
-	typeof(ValueRepeat<>),
-  ];
+		typeof(ValueMod<>),
+		typeof(ValueRepeat<>),
+	];
 
 	internal static IEnumerable<MenuItem> ArithmeticRepeatGroupItems(ContextualContext context)
 	{
@@ -23,8 +23,8 @@ static partial class ContextualSwapActionsPatch
 			var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(opType));
 
 			static MenuItem RepeatItem(Type nodeType) => new(
-			  node: nodeType,
-			  connectionTransferType: ConnectionTransferType.ByIndexLossy
+				node: nodeType,
+				connectionTransferType: ConnectionTransferType.ByIndexLossy
 			);
 
 			if (coder.Property<bool>("SupportsRepeat").Value)

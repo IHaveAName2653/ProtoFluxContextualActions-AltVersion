@@ -7,9 +7,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> FindSlotGroup = [
-	  typeof(FindChildByName),
-	typeof(FindChildByTag),
-  ];
+		typeof(FindChildByName),
+		typeof(FindChildByTag),
+	];
 
 	internal static IEnumerable<MenuItem> FindSlotGroupItems(ContextualContext context)
 	{

@@ -10,13 +10,13 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> LerpGroup = [
-	  typeof(ValueSmoothLerp<>),
-	typeof(ValueConstantLerp<>),
-	typeof(ValueLerp<>),
-	typeof(ValueLerpUnclamped<>),
-	typeof(ValueMultiLerp<>),
-	typeof(ValueInverseLerp<>),
-  ];
+		typeof(ValueSmoothLerp<>),
+		typeof(ValueConstantLerp<>),
+		typeof(ValueLerp<>),
+		typeof(ValueLerpUnclamped<>),
+		typeof(ValueMultiLerp<>),
+		typeof(ValueInverseLerp<>),
+	];
 
 	internal static IEnumerable<MenuItem> LerpGroupItems(ContextualContext context)
 	{

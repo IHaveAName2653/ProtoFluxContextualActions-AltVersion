@@ -16,9 +16,9 @@ public readonly struct ReferenceElement(INode node, int index, int? elementListI
 	}
 
 	public readonly string DisplayName =>
-	  ElementListIndex is int listIndex
-		? throw new NotImplementedException()
-		: OwnerNode.GetReferenceName(ElementIndex);
+		ElementListIndex is int listIndex
+			? throw new NotImplementedException()
+			: OwnerNode.GetReferenceName(ElementIndex);
 
 	public readonly Type TargetType => OwnerNode.GetReferenceType(ElementIndex);
 

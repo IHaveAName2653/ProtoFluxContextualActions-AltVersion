@@ -8,9 +8,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> NullCoalesceGroup = [
-	  typeof(NullCoalesce<>),
-	typeof(MultiNullCoalesce<>),
-  ];
+		typeof(NullCoalesce<>),
+		typeof(MultiNullCoalesce<>),
+	];
 
 	internal static IEnumerable<MenuItem> NullCoalesceGroupItems(ContextualContext context)
 	{

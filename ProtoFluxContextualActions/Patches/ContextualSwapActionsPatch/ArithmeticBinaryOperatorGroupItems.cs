@@ -10,12 +10,12 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> ArithmeticBinaryOperatorGroup = [
-	  typeof(ValueAdd<>),
-	typeof(ValueSub<>),
-	typeof(ValueMul<>),
-	typeof(ValueDiv<>),
-	typeof(ValueMod<>),
-  ];
+		typeof(ValueAdd<>),
+		typeof(ValueSub<>),
+		typeof(ValueMul<>),
+		typeof(ValueDiv<>),
+		typeof(ValueMod<>),
+	];
 
 	internal static IEnumerable<MenuItem> ArithmeticBinaryOperatorGroupItems(ContextualContext context)
 	{

@@ -65,5 +65,5 @@ internal static class NodeUtils
 	public static bool TryGetNumberToEnumNode(Type enumType, [MaybeNullWhen(false)] out Type type) => NumberToEnumTypeMap.TryGetValue(enumType, out type);
 
 	public static readonly Dictionary<Type, Type> ProtoFluxBindingMapping =
-	  Traverse.Create(typeof(ProtoFluxHelper)).Field<Dictionary<Type, Type>>("protoFluxToBindingMapping").Value.ToDictionary(a => a.Value, a => a.Key);
+		Traverse.Create(typeof(ProtoFluxHelper)).Field<Dictionary<Type, Type>>("protoFluxToBindingMapping").Value.ToDictionary(a => a.Value, a => a.Key);
 }

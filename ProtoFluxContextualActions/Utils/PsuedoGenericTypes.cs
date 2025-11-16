@@ -16,7 +16,7 @@ class PsuedoGenericTypes(World world)
 	// We will convert the types to protoflux nodes rather than frooxengine ones for convenience 
 	// this is technically not "correct" behavior, but it saves us trouble right now
 	internal PsuedoGenerics MapTypes(string startingWith) =>
-	  PsuedoGenericUtils.MapPsuedoGenericsToGenericTypes(World, startingWith)
+		PsuedoGenericUtils.MapPsuedoGenericsToGenericTypes(World, startingWith)
 		.Select(a => (NodeUtils.ProtoFluxBindingMapping[a.Node], a.Types));
 
 	public PsuedoGenerics Acos { get => field ??= MapTypes("Acos_"); }
@@ -74,18 +74,18 @@ class PsuedoGenericTypes(World world)
 	public PsuedoGenerics PackTangentPoint
 	{
 		get => field ??= [
-		  (typeof(PackTangentPointColor), [typeof(TangentPointColor)]),
-	  (typeof(PackTangentPointColorX), [typeof(TangentPointColorX)]),
-	  (typeof(PackTangentPointFloat), [typeof(TangentPointFloat)]),
-	  (typeof(PackTangentPointFloat2), [typeof(TangentPointFloat2)]),
-	  (typeof(PackTangentPointFloat3), [typeof(TangentPointFloat3)]),
-	  (typeof(PackTangentPointFloat3), [typeof(TangentPointFloat4)]),
-	  (typeof(PackTangentPointFloat3), [typeof(TangentPointFloat4)]),
-	  (typeof(PackTangentPointDouble), [typeof(TangentPointDouble)]),
-	  (typeof(PackTangentPointDouble2), [typeof(TangentPointDouble2)]),
-	  (typeof(PackTangentPointDouble3), [typeof(TangentPointDouble3)]),
-	  (typeof(PackTangentPointDouble3), [typeof(TangentPointDouble4)]),
-	  (typeof(PackTangentPointDouble3), [typeof(TangentPointDouble4)]),
-	];
+			(typeof(PackTangentPointColor), [typeof(TangentPointColor)]),
+			(typeof(PackTangentPointColorX), [typeof(TangentPointColorX)]),
+			(typeof(PackTangentPointFloat), [typeof(TangentPointFloat)]),
+			(typeof(PackTangentPointFloat2), [typeof(TangentPointFloat2)]),
+			(typeof(PackTangentPointFloat3), [typeof(TangentPointFloat3)]),
+			(typeof(PackTangentPointFloat3), [typeof(TangentPointFloat4)]),
+			(typeof(PackTangentPointFloat3), [typeof(TangentPointFloat4)]),
+			(typeof(PackTangentPointDouble), [typeof(TangentPointDouble)]),
+			(typeof(PackTangentPointDouble2), [typeof(TangentPointDouble2)]),
+			(typeof(PackTangentPointDouble3), [typeof(TangentPointDouble3)]),
+			(typeof(PackTangentPointDouble3), [typeof(TangentPointDouble4)]),
+			(typeof(PackTangentPointDouble3), [typeof(TangentPointDouble4)]),
+		];
 	}
 }

@@ -7,10 +7,10 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> GrabbableValuePropertyGroup = [
-	  typeof(IsGrabbableGrabbed),
-	typeof(IsGrabbableScalable),
-	typeof(IsGrabbableReceivable),
-  ];
+		typeof(IsGrabbableGrabbed),
+		typeof(IsGrabbableScalable),
+		typeof(IsGrabbableReceivable),
+	];
 
 
 	internal static IEnumerable<MenuItem> GrabbableValuePropertyGroupItems(ContextualContext context)

@@ -8,13 +8,13 @@ static partial class ContextualSwapActionsPatch
 {
 	// todo: async
 	static readonly HashSet<Type> ForLoopGroup = [
-	  typeof(For),
-	typeof(While),
-	typeof(RangeLoopInt),
-	typeof(AsyncFor),
-	typeof(AsyncWhile),
-	typeof(AsyncRangeLoopInt),
-  ];
+		typeof(For),
+		typeof(While),
+		typeof(RangeLoopInt),
+		typeof(AsyncFor),
+		typeof(AsyncWhile),
+		typeof(AsyncRangeLoopInt),
+	];
 
 	internal static IEnumerable<MenuItem> ForLoopGroupItems(ContextualContext context)
 	{

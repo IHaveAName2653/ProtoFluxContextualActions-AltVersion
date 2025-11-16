@@ -32,8 +32,8 @@ public readonly struct ImpulseElement(INode node, int elementIndex, int? element
 
 	internal IOperation? GetImpulseTarget() =>
 		ElementListIndex is int listIndex
-		  ? OwnerNode.GetImpulseList(listIndex).GetImpulseTarget(ElementIndex)
-		  : OwnerNode.GetImpulseTarget(ElementIndex);
+			? OwnerNode.GetImpulseList(listIndex).GetImpulseTarget(ElementIndex)
+			: OwnerNode.GetImpulseTarget(ElementIndex);
 
 	internal void SetImpulseTarget(IOperation? value)
 	{
@@ -48,9 +48,9 @@ public readonly struct ImpulseElement(INode node, int elementIndex, int? element
 	}
 
 	public readonly string DisplayName =>
-	  ElementListIndex is int listIndex
-		? $"{OwnerNode.GetImpulseListName(listIndex)}[{ElementIndex}]"
-		: OwnerNode.GetImpulseName(ElementIndex);
+		ElementListIndex is int listIndex
+			? $"{OwnerNode.GetImpulseListName(listIndex)}[{ElementIndex}]"
+			: OwnerNode.GetImpulseName(ElementIndex);
 
 	public readonly ImpulseType TargetType => OwnerNode.GetImpulseType(ElementIndex);
 
@@ -59,5 +59,5 @@ public readonly struct ImpulseElement(INode node, int elementIndex, int? element
 	int? IElementIndex.ElementListIndex => ElementListIndex;
 
 	public override string ToString() =>
-	  $"ImpulseElement.{TargetType} [{ElementIndex}, {ElementListIndex}] '{DisplayName}' -> {Target}";
+		$"ImpulseElement.{TargetType} [{ElementIndex}, {ElementListIndex}] '{DisplayName}' -> {Target}";
 }

@@ -176,20 +176,20 @@ internal static partial class ContextualSwapActionsPatch
 				foreach (var menuItem in items)
 				{
 					AddMenuItem(__instance, menu, colorX.White, menuItem, () =>
-				{
-					try
 					{
-						SwapHitForNode(__instance, hitNode, menuItem);
-					}
-					finally
-					{
-						// if there's somehow an error I do not want evil dangling references that world crash silently.
-						if (hitNode != null && !hitNode.IsRemoved)
+						try
 						{
-							hitNode.UndoableDestroy();
+							SwapHitForNode(__instance, hitNode, menuItem);
 						}
-					}
-				});
+						finally
+						{
+							// if there's somehow an error I do not want evil dangling references that world crash silently.
+							if (hitNode != null && !hitNode.IsRemoved)
+							{
+								hitNode.UndoableDestroy();
+							}
+						}
+					});
 				}
 			}
 		});
@@ -246,9 +246,9 @@ internal static partial class ContextualSwapActionsPatch
 
 			var newNode = nodeMap[newNodeInstance];
 			var dynamicLists = newNode.NodeInputLists
-			  .Concat(newNode.NodeOutputLists)
-			  .Concat(newNode.NodeImpulseLists)
-			  .Concat(newNode.NodeOperationLists);
+				.Concat(newNode.NodeOutputLists)
+				.Concat(newNode.NodeImpulseLists)
+				.Concat(newNode.NodeOperationLists);
 
 			foreach (var list in dynamicLists) list.EnsureElementCount(2);
 
@@ -285,62 +285,63 @@ internal static partial class ContextualSwapActionsPatch
 		var context = new ContextualContext(nodeType, __instance.World, target);
 
 		IEnumerable<MenuItem> menuItems = [
-		  .. UserRootSwapGroups(nodeType),
-	  .. GlobalLocalEquivilentSwapGroups(nodeType),
-	  .. GetDirectionGroupItems(context),
-	  .. ForLoopGroupItems(context),
-	  .. EasingOfSameKindFloatItems(context),
-	  .. EasingOfSameKindDoubleItems(context),
-	  .. TimespanInstanceGroupItems(context),
-	  .. SetSlotTranformGlobalOperationGroupItems(context),
-	  .. SetSlotTranformLocalOperationGroupItems(context),
-	  .. UserInfoGroupItems(context),
-	  .. DeltaTimeGroupItems(context),
-	  .. UserBoolCheckGroupItems(context),
-	  .. PlayOneShotGroupItems(context),
-	  .. ScreenPointGroupItems(context),
-	  .. MousePositionGroupItems(context),
-	  .. FindSlotGroupItems(context),
-	  .. SlotMetaGroupItems(context),
-	  .. UserRootSlotGroupItems(context),
-	  .. UserRootPositionGroupItems(context),
-	  .. UserRootRotationGroupItems(context),
-	  .. SetUserRootPositionGroupItems(context),
-	  .. SetUserRootRotationGroupItems(context),
-	  .. UserRootHeadRotationGroupItems(context),
-	  .. SetUserRootHeadRotationGroupItems(context),
-	  .. BinaryOperationsGroupItems(context),
-	  .. BinaryOperationsMultiGroupItems(context),
-	  .. BinaryOperationsMultiSwapMapItems(context),
-	  .. NumericLogGroupItems(context),
-	  .. ApproximatelyGroupItems(context),
-	  .. AverageGroupItems(context),
-	  .. VariableStoreNodesGroupItems(context),
-	  .. ValueRelayGroupItems(context),
-	  .. ObjectRelayGroupItems(context),
-	  .. ComparisonBinaryOperatorGroupItems(context),
-	  .. DeltaTimeOperationGroupItems(context),
-	  .. EnumShiftGroupItems(context),
-	  .. NullCoalesceGroupItems(context),
-	  .. MinMaxGroupItems(context),
-	  .. MinMaxMultiGroupItems(context),
-	  .. ArithmeticBinaryOperatorGroupItems(context),
-	  .. ArithmeticMultiOperatorGroupItems(context),
-	  .. ArithmeticRepeatGroupItems(context),
-	  .. ArithmeticNegateGroupItems(context),
-	  .. ArithmeticOneGroupItems(context),
-	  .. EnumToNumberGroupItems(context),
-	  .. NumberToEnumGroupItems(context),
-	  .. MultiInputMappingGroupItems(context),
-	  .. ApproximatelyNodesGroupItems(context),
-	  .. GrabbableValuePropertyGroupItems(context),
-	  .. SinCosSwapGroup(context),
-	  .. SampleSpatialVariableGroupItems(context),
-	  .. KeyStateGroupItems(context),
+			.. UserRootSwapGroups(nodeType),
+			.. GlobalLocalEquivilentSwapGroups(nodeType),
+			.. GetDirectionGroupItems(context),
+			.. ForLoopGroupItems(context),
+			.. EasingOfSameKindFloatItems(context),
+			.. EasingOfSameKindDoubleItems(context),
+			.. TimespanInstanceGroupItems(context),
+			.. SetSlotTranformGlobalOperationGroupItems(context),
+			.. SetSlotTranformLocalOperationGroupItems(context),
+			.. UserInfoGroupItems(context),
+			.. DeltaTimeGroupItems(context),
+			.. UserBoolCheckGroupItems(context),
+			.. PlayOneShotGroupItems(context),
+			.. ScreenPointGroupItems(context),
+			.. MousePositionGroupItems(context),
+			.. FindSlotGroupItems(context),
+			.. SlotMetaGroupItems(context),
+			.. UserRootSlotGroupItems(context),
+			.. UserRootPositionGroupItems(context),
+			.. UserRootRotationGroupItems(context),
+			.. SetUserRootPositionGroupItems(context),
+			.. SetUserRootRotationGroupItems(context),
+			.. UserRootHeadRotationGroupItems(context),
+			.. SetUserRootHeadRotationGroupItems(context),
+			.. BinaryOperationsGroupItems(context),
+			.. BinaryOperationsMultiGroupItems(context),
+			.. BinaryOperationsMultiSwapMapItems(context),
+			.. NumericLogGroupItems(context),
+			.. ApproximatelyGroupItems(context),
+			.. AverageGroupItems(context),
+			.. VariableStoreNodesGroupItems(context),
+			.. ValueRelayGroupItems(context),
+			.. ObjectRelayGroupItems(context),
+			.. ValueComparisonBinaryOperatorGroupItems(context),
+			.. DeltaTimeOperationGroupItems(context),
+			.. EnumShiftGroupItems(context),
+			.. NullCoalesceGroupItems(context),
+			.. MinMaxGroupItems(context),
+			.. MinMaxMultiGroupItems(context),
+			.. ArithmeticBinaryOperatorGroupItems(context),
+			.. ArithmeticMultiOperatorGroupItems(context),
+			.. ArithmeticRepeatGroupItems(context),
+			.. ArithmeticNegateGroupItems(context),
+			.. ArithmeticOneGroupItems(context),
+			.. EnumToNumberGroupItems(context),
+			.. NumberToEnumGroupItems(context),
+			.. MultiInputMappingGroupItems(context),
+			.. ApproximatelyNodesGroupItems(context),
+			.. GrabbableValuePropertyGroupItems(context),
+			.. SinCosSwapGroup(context),
+			.. SampleSpatialVariableGroupItems(context),
+			.. KeyStateGroupItems(context),
+			.. ObjectComparisonBinaryOperatorGroupItems(context),
 
-	  .. LerpGroupItems(context),
-	  .. DynamicImpulseGroupItems(context),
-	];
+			.. LerpGroupItems(context),
+			.. DynamicImpulseGroupItems(context),
+		];
 
 		foreach (var menuItem in menuItems)
 		{
@@ -350,10 +351,10 @@ internal static partial class ContextualSwapActionsPatch
 
 	#region Utils
 	internal static string FormatMultiName(Type match) =>
-	  $"{NodeMetadataHelper.GetMetadata(match).Name} (Multi)";
+		$"{NodeMetadataHelper.GetMetadata(match).Name} (Multi)";
 
 	internal static bool TryGetSwap(BiDictionary<Type, Type> swaps, Type nodeType, out Type match) =>
-	  swaps.TryGetSecond(nodeType, out match) || swaps.TryGetFirst(nodeType, out match);
+		swaps.TryGetSecond(nodeType, out match) || swaps.TryGetFirst(nodeType, out match);
 
 	[HarmonyReversePatch]
 	[HarmonyPatch(typeof(ProtoFluxTool), "CleanupDraggedWire")]

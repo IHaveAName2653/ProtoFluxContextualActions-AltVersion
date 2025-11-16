@@ -12,7 +12,7 @@ namespace ProtoFluxContextualActions.Utils;
 public static class PsuedoGenericUtils
 {
 	public static IEnumerable<(Type Node, IEnumerable<Type> Types)> MapPsuedoGenericsToGenericTypes(World world, string startingWith) =>
-	  GetProtoFluxNodes().Values
+		GetProtoFluxNodes().Values
 		.Select(t => (name: t.GetNiceTypeName(), type: t))
 		.Where(a => a.name.StartsWith(startingWith) && !a.type.IsGenericType)
 		.Select(a => (a.type, ParseUnderscoreGenerics(world, a.name[startingWith.Length..])))
@@ -36,5 +36,5 @@ public static class PsuedoGenericUtils
 		generics.Split('_').Select(name => world.Types.DecodeType(name.ToLower()) ?? world.Types.DecodeType(name));
 
 	static Dictionary<string, Type> GetProtoFluxNodes() =>
-	  Traverse.Create(typeof(ProtoFluxHelper)).Field<Dictionary<string, Type>>("protoFluxNodes").Value;
+		Traverse.Create(typeof(ProtoFluxHelper)).Field<Dictionary<string, Type>>("protoFluxNodes").Value;
 }

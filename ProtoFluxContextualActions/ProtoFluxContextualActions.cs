@@ -53,9 +53,9 @@ public class ProtoFluxContextualActions : ResoniteMod
 			if (patchCategory != null && tweakCategory != null)
 			{
 				ModConfigurationKey<bool> key = new(
-				  name: patchCategory.info.category,
-				  description: tweakCategory.Description,
-				  computeDefault: () => tweakCategory.DefaultValue
+					name: patchCategory.info.category,
+					description: tweakCategory.Description,
+					computeDefault: () => tweakCategory.DefaultValue
 				);
 
 				DebugFunc(() => $"Registering patch category {key.Name}...");

@@ -7,9 +7,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> PlayOneShotGroup = [
-	  typeof(PlayOneShot),
-	typeof(PlayOneShotAndWait),
-  ];
+		typeof(PlayOneShot),
+		typeof(PlayOneShotAndWait),
+	];
 
 	internal static IEnumerable<MenuItem> PlayOneShotGroupItems(ContextualContext context)
 	{

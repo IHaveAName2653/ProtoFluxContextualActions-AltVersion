@@ -44,6 +44,7 @@ using ProtoFlux.Runtimes.Execution.Nodes.Strings;
 using ProtoFlux.Runtimes.Execution.Nodes.Strings.Characters;
 using ProtoFlux.Runtimes.Execution.Nodes.TimeAndDate;
 using ProtoFlux.Runtimes.Execution.Nodes.Utility;
+using ProtoFlux.Runtimes.Execution.Nodes.Utility.Uris;
 using ProtoFluxContextualActions.Attributes;
 using ProtoFluxContextualActions.Extensions;
 using ProtoFluxContextualActions.Tagging;
@@ -157,27 +158,27 @@ internal static class ContextualSelectionActionsPatch
 							foreach (var item in items)
 							{
 								AddMenuItem(__instance, menu, inputProxy.InputType.Value.GetTypeColor(), item, addedNode =>
-						  {
-							  if (item.overload)
-							  {
-								  __instance.StartTask(async () =>
-							{
-								// this is dumb
-								// TODO: investigate why it's needed to avoid the one or two update disconnect issue
-								await new Updates(1);
-								var output = addedNode.GetOutput(0); // TODO: specify
-								elementProxy.Node.Target.TryConnectInput(inputProxy.NodeInput.Target, output, allowExplicitCast: false, undoable: true);
-							});
-							  }
-							  else
-							  {
-								  var output = addedNode.NodeOutputs
-							  .FirstOrDefault(o => typeof(INodeOutput<>).MakeGenericType(inputProxy.InputType).IsAssignableFrom(o.GetType()))
-							  ?? throw new Exception($"Could not find matching output of type '{inputProxy.InputType}' in '{addedNode}'");
+								{
+									if (item.overload)
+									{
+										__instance.StartTask(async () =>
+										{
+											// this is dumb
+											// TODO: investigate why it's needed to avoid the one or two update disconnect issue
+											await new Updates(1);
+											var output = addedNode.GetOutput(0); // TODO: specify
+											elementProxy.Node.Target.TryConnectInput(inputProxy.NodeInput.Target, output, allowExplicitCast: false, undoable: true);
+										});
+									}
+									else
+									{
+										var output = addedNode.NodeOutputs
+										.FirstOrDefault(o => typeof(INodeOutput<>).MakeGenericType(inputProxy.InputType).IsAssignableFrom(o.GetType()))
+										?? throw new Exception($"Could not find matching output of type '{inputProxy.InputType}' in '{addedNode}'");
 
-								  elementProxy.Node.Target.TryConnectInput(inputProxy.NodeInput.Target, output, allowExplicitCast: false, undoable: true);
-							  }
-						  });
+										elementProxy.Node.Target.TryConnectInput(inputProxy.NodeInput.Target, output, allowExplicitCast: false, undoable: true);
+									}
+								});
 							}
 							break;
 						}
@@ -186,29 +187,29 @@ internal static class ContextualSelectionActionsPatch
 							foreach (var item in items)
 							{
 								AddMenuItem(__instance, menu, outputProxy.OutputType.Value.GetTypeColor(), item, addedNode =>
-						  {
-							  if (item.overload) throw new Exception("Overloading with ProtoFluxOutputProxy is not supported");
-							  var input = addedNode.NodeInputs
-						  .FirstOrDefault(i => i.TargetType.IsGenericType && (outputProxy.OutputType.Value.IsAssignableFrom(i.TargetType.GenericTypeArguments[0]) || ProtoFlux.Core.TypeHelper.CanImplicitlyConvertTo(outputProxy.OutputType, i.TargetType.GenericTypeArguments[0])))
-						  ?? throw new Exception($"Could not find matching input of type '{outputProxy.OutputType}' in '{addedNode}'");
+								{
+									if (item.overload) throw new Exception("Overloading with ProtoFluxOutputProxy is not supported");
+									var input = addedNode.NodeInputs
+									.FirstOrDefault(i => i.TargetType.IsGenericType && (outputProxy.OutputType.Value.IsAssignableFrom(i.TargetType.GenericTypeArguments[0]) || ProtoFlux.Core.TypeHelper.CanImplicitlyConvertTo(outputProxy.OutputType, i.TargetType.GenericTypeArguments[0])))
+									?? throw new Exception($"Could not find matching input of type '{outputProxy.OutputType}' in '{addedNode}'");
 
-							  __instance.StartTask(async () =>
-						{
-							// this is dumb
-							// TODO: investigate why it's needed for casting to work
+									__instance.StartTask(async () =>
+									{
+										// this is dumb
+										// TODO: investigate why it's needed for casting to work
 
-							await new Updates();
+										await new Updates();
 
-							if (item.onNodeSpawn != null)
-							{
-								bool doConnect = item.onNodeSpawn(addedNode, elementProxy, __instance);
+										if (item.onNodeSpawn != null)
+										{
+											bool doConnect = item.onNodeSpawn(addedNode, elementProxy, __instance);
 
-								if (!doConnect) return;
-							}
+											if (!doConnect) return;
+										}
 
-							addedNode.TryConnectInput(input, outputProxy.NodeOutput.Target, allowExplicitCast: false, undoable: true);
-						});
-						  });
+										addedNode.TryConnectInput(input, outputProxy.NodeOutput.Target, allowExplicitCast: false, undoable: true);
+									});
+								});
 							}
 							break;
 						}
@@ -218,10 +219,10 @@ internal static class ContextualSelectionActionsPatch
 							{
 								// the colors should almost always be the same so unique colors are more important maybe?
 								AddMenuItem(__instance, menu, item.node.GetTypeColor(), item, n =>
-						  {
-							  if (item.overload) throw new Exception("Overloading with ProtoFluxImpulseProxy is not supported");
-							  n.TryConnectImpulse(impulseProxy.NodeImpulse.Target, n.GetOperation(0), undoable: true);
-						  });
+								{
+									if (item.overload) throw new Exception("Overloading with ProtoFluxImpulseProxy is not supported");
+									n.TryConnectImpulse(impulseProxy.NodeImpulse.Target, n.GetOperation(0), undoable: true);
+								});
 							}
 							break;
 						}
@@ -230,10 +231,10 @@ internal static class ContextualSelectionActionsPatch
 							foreach (var item in items)
 							{
 								AddMenuItem(__instance, menu, item.node.GetTypeColor(), item, n =>
-						  {
-							  if (item.overload) throw new Exception("Overloading with ProtoFluxOperationProxy is not supported");
-							  n.TryConnectImpulse(n.GetImpulse(0), operationProxy.NodeOperation.Target, undoable: true);
-						  });
+								{
+									if (item.overload) throw new Exception("Overloading with ProtoFluxOperationProxy is not supported");
+									n.TryConnectImpulse(n.GetImpulse(0), operationProxy.NodeOperation.Target, undoable: true);
+								});
 							}
 							break;
 						}
@@ -257,12 +258,12 @@ internal static class ContextualSelectionActionsPatch
 		{
 			var nodeBinding = item.binding ?? ProtoFluxHelper.GetBindingForNode(item.node);
 			__instance.SpawnNode(nodeBinding, n =>
-		{
-			n.EnsureElementsInDynamicLists();
-			setup(n);
-			__instance.LocalUser.CloseContextMenu(__instance);
-			CleanupDraggedWire(__instance);
-		});
+			{
+				n.EnsureElementsInDynamicLists();
+				setup(n);
+				__instance.LocalUser.CloseContextMenu(__instance);
+				CleanupDraggedWire(__instance);
+			});
 		};
 	}
 
@@ -501,99 +502,100 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(ObjectRelay<Slot>), name: "Foreach Child", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
 			{
 				tool.StartTask(async () =>
-		  {
-			  // Node spawning
-			  Type childCountNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots.ChildrenCount);
-			  Type forNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.For);
-			  Type getChildNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots.GetChild);
-			  Type relayNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.ObjectRelay<Slot>);
+				{
+					// Node spawning
+					Type childCountNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots.ChildrenCount);
+					Type forNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.For);
+					Type getChildNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots.GetChild);
+					Type relayNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.ObjectRelay<Slot>);
 
-			  ProtoFluxNode thisChildCountNode = null;
-			  ProtoFluxNode thisForNode = null;
-			  ProtoFluxNode thisGetChild = null;
-			  ProtoFluxNode thisRelayNode = null;
+					ProtoFluxNode thisChildCountNode = null;
+					ProtoFluxNode thisForNode = null;
+					ProtoFluxNode thisGetChild = null;
+					ProtoFluxNode thisRelayNode = null;
 
-			  tool.SpawnNode(childCountNode, newNode =>
-		{
-			thisChildCountNode = newNode;
-			newNode.EnsureVisual();
-		});
-			  tool.SpawnNode(forNode, newNode =>
-		{
-			thisForNode = newNode;
-			newNode.EnsureVisual();
-		});
-			  tool.SpawnNode(getChildNode, newNode =>
-		{
-			thisGetChild = newNode;
-			newNode.EnsureVisual();
-		});
-			  tool.SpawnNode(relayNode, newNode =>
-		{
-			thisRelayNode = newNode;
-			newNode.EnsureVisual();
-		});
+					tool.SpawnNode(childCountNode, newNode =>
+					{
+						thisChildCountNode = newNode;
+						newNode.EnsureVisual();
+					});
+					tool.SpawnNode(forNode, newNode =>
+					{
+						thisForNode = newNode;
+						newNode.EnsureVisual();
+					});
+					tool.SpawnNode(getChildNode, newNode =>
+					{
+						thisGetChild = newNode;
+						newNode.EnsureVisual();
+					});
+					tool.SpawnNode(relayNode, newNode =>
+					{
+						thisRelayNode = newNode;
+						newNode.EnsureVisual();
+					});
 
-			  await new Updates(3);
+					await new Updates(3);
 
-			  if (thisChildCountNode == null) return;
-			  if (thisForNode == null) return;
-			  if (thisGetChild == null) return;
-			  if (thisRelayNode == null) return;
+					if (thisChildCountNode == null) return;
+					if (thisForNode == null) return;
+					if (thisGetChild == null) return;
+					if (thisRelayNode == null) return;
 
-			  node.World.BeginUndoBatch("Create Foreach Child");
+					node.World.BeginUndoBatch("Create Foreach Child");
 
-			  node.Slot.CreateSpawnUndoPoint("Spawn Child Count");
-			  thisChildCountNode.Slot.CreateSpawnUndoPoint("Spawn Child Count");
-			  thisForNode.Slot.CreateSpawnUndoPoint("Spawn For");
-			  thisGetChild.Slot.CreateSpawnUndoPoint("Spawn Get Child");
-			  thisRelayNode.Slot.CreateSpawnUndoPoint("Spawn Relay");
+					node.Slot.CreateSpawnUndoPoint("Spawn Child Count");
+					thisChildCountNode.Slot.CreateSpawnUndoPoint("Spawn Child Count");
+					thisForNode.Slot.CreateSpawnUndoPoint("Spawn For");
+					thisGetChild.Slot.CreateSpawnUndoPoint("Spawn Get Child");
+					thisRelayNode.Slot.CreateSpawnUndoPoint("Spawn Relay");
 
-			  // Inputs and outputs
+					// Inputs and outputs
 
-			  INodeOutput inputRelay = node.GetOutput(0);
+					INodeOutput inputRelay = node.GetOutput(0);
 
-			  ISyncRef childCountInstance = thisChildCountNode.GetInput(0);
-			  INodeOutput childCount = thisChildCountNode.GetOutput(0);
+					ISyncRef childCountInstance = thisChildCountNode.GetInput(0);
+					INodeOutput childCount = thisChildCountNode.GetOutput(0);
 
-			  ISyncRef forCount = thisForNode.GetInput(0);
-			  INodeOutput forIndex = thisForNode.GetOutput(0);
+					ISyncRef forCount = thisForNode.GetInput(0);
+					INodeOutput forIndex = thisForNode.GetOutput(0);
 
-			  ISyncRef childInstance = thisGetChild.GetInput(0);
-			  ISyncRef childIndex = thisGetChild.GetInput(1);
+					ISyncRef childInstance = thisGetChild.GetInput(0);
+					ISyncRef childIndex = thisGetChild.GetInput(1);
 
-			  ISyncRef relayInstance = thisRelayNode.GetInput(0);
-			  INodeOutput relayOutput = thisRelayNode.GetOutput(0);
-
-
-
-			  relayInstance.Target = inputRelay;
-			  childCountInstance.Target = inputRelay;
-
-			  forCount.Target = childCount;
-
-			  childIndex.Target = forIndex;
-			  childInstance.Target = relayOutput;
+					ISyncRef relayInstance = thisRelayNode.GetInput(0);
+					INodeOutput relayOutput = thisRelayNode.GetOutput(0);
 
 
-			  // Positions
-			  void LocalTransformNode(ProtoFluxNode input, float X, float Y)
-			  {
-				  Slot target = input.Slot;
-				  float3 upDir = target.Up;
-				  float3 rightDir = target.Right;
-				  target.GlobalPosition += (upDir * Y) + (rightDir * X);
-			  }
 
-			  LocalTransformNode(thisChildCountNode, 0.12f, 0.00375f);
-			  LocalTransformNode(thisForNode, 0.27f, -0.01125f);
+					relayInstance.Target = inputRelay;
+					childCountInstance.Target = inputRelay;
 
-			  LocalTransformNode(thisRelayNode, 0.075f, -0.105f);
+					forCount.Target = childCount;
 
-			  LocalTransformNode(thisGetChild, 0.42f, -0.11625f);
+					childIndex.Target = forIndex;
+					childInstance.Target = relayOutput;
 
-			  node.World.EndUndoBatch();
-		  });
+					// Positions
+					float3 baseUp = node.Slot.Up;
+					float3 baseRight = node.Slot.Right;
+
+					void LocalTransformNode(ProtoFluxNode input, float X, float Y)
+					{
+						Slot target = input.Slot;
+						target.CopyTransform(node.Slot);
+						target.GlobalPosition += (baseUp * Y) + (baseRight * X);
+					}
+
+					LocalTransformNode(thisChildCountNode, 0.12f, 0.00375f);
+					LocalTransformNode(thisForNode, 0.27f, -0.01125f);
+
+					LocalTransformNode(thisRelayNode, 0.075f, -0.105f);
+
+					LocalTransformNode(thisGetChild, 0.42f, -0.11625f);
+
+					node.World.EndUndoBatch();
+				});
 
 				return true;
 
@@ -723,6 +725,12 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(KeyHeld));
 		}
 
+		if (outputType == typeof(object))
+		{
+			yield return new MenuItem(typeof(GetType));
+			yield return new MenuItem(typeof(ToString_object));
+		}
+
 		if (outputType.IsEnum)
 		{
 			yield return new MenuItem(typeof(NextValue<>).MakeGenericType(outputType), name: typeof(NextValue<>).GetNiceName());
@@ -804,6 +812,11 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(ValueDemultiplex<dummy>), name: "Value Demultiplex");
 		}
 
+		if (nodeType == typeof(DataModelBooleanToggle) && outputType == typeof(bool))
+		{
+			yield return new(typeof(FireOnLocalValueChange<bool>));
+		}
+
 		if (Groups.MousePositionGroup.Contains(nodeType))
 		{
 			foreach (var node in Groups.ScreenPointGroup)
@@ -845,22 +858,22 @@ internal static class ContextualSelectionActionsPatch
 		if (nodeVariable != null)
 		{
 			var variableInput = GetNodeForType(nodeVariable, [
-			  new NodeTypeRecord(typeof(ValueWrite<>), null, null),
-		  new NodeTypeRecord(typeof(ObjectWrite<>), null, null),
-		]);
+				new NodeTypeRecord(typeof(ValueWrite<>), null, null),
+				new NodeTypeRecord(typeof(ObjectWrite<>), null, null),
+			]);
 			yield return new MenuItem(
-			  variableInput,
-			  onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
-			  {
-				  ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
+				variableInput,
+				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
+				{
+					ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
 
-				  ISyncRef targetRef = newNode.GetReference(0);
+					ISyncRef targetRef = newNode.GetReference(0);
 
-				  newNode.TryConnectReference(targetRef, outputProxy.Node.Target, undoable: true);
+					newNode.TryConnectReference(targetRef, outputProxy.Node.Target, undoable: true);
 
-				  return false;
-			  }
-			  );
+					return false;
+				}
+			);
 		}
 	}
 	#endregion
@@ -886,6 +899,12 @@ internal static class ContextualSelectionActionsPatch
 			{
 				yield return new MenuItem(packNodeType);
 			}
+		}
+
+		if (inputType == typeof(string))
+		{
+			yield return new MenuItem(typeof(FormatString));
+			yield return new MenuItem(typeof(ToString_object));
 		}
 
 		if (inputType == typeof(User))
@@ -935,6 +954,7 @@ internal static class ContextualSelectionActionsPatch
 		{
 			yield return new MenuItem(typeof(RootSlot));
 			yield return new MenuItem(typeof(LocalUserSlot));
+			yield return new MenuItem(typeof(LocalUserSpace));
 		}
 
 		else if (inputType == typeof(BoundingBox))
@@ -973,6 +993,11 @@ internal static class ContextualSelectionActionsPatch
 		{
 			yield return new MenuItem(typeof(GetUserGrabber));
 			yield return new MenuItem(typeof(GrabbableGrabber));
+		}
+
+		else if (inputType == typeof(Uri))
+		{
+			yield return new MenuItem(typeof(StringToAbsoluteURI));
 		}
 
 		else if (TypeUtils.MatchInterface(inputType, typeof(IQuantity<>), out var quantityType))
@@ -1063,17 +1088,17 @@ internal static class ContextualSelectionActionsPatch
 		yield return new MenuItem(typeof(DataModelBooleanToggle));
 
 		var variableInput = GetNodeForType(inputType, [
-		  new NodeTypeRecord(typeof(LocalValue<>), null, null),
-	  new NodeTypeRecord(typeof(LocalObject<>), null, null),
-	]);
+			new NodeTypeRecord(typeof(LocalValue<>), null, null),
+			new NodeTypeRecord(typeof(LocalObject<>), null, null),
+		]);
 		var variableInput2 = GetNodeForType(inputType, [
-		  new NodeTypeRecord(typeof(StoredValue<>), null, null),
-	  new NodeTypeRecord(typeof(StoredObject<>), null, null),
-	]);
+			new NodeTypeRecord(typeof(StoredValue<>), null, null),
+			new NodeTypeRecord(typeof(StoredObject<>), null, null),
+		]);
 		var variableInput3 = GetNodeForType(inputType, [
-		  new NodeTypeRecord(typeof(DataModelValueFieldStore<>), null, null),
-	  new NodeTypeRecord(typeof(DataModelObjectRefStore<>), null, null),
-	]);
+			new NodeTypeRecord(typeof(DataModelValueFieldStore<>), null, null),
+			new NodeTypeRecord(typeof(DataModelObjectRefStore<>), null, null),
+		]);
 
 		yield return new MenuItem(variableInput);
 		yield return new MenuItem(variableInput2);
@@ -1088,11 +1113,11 @@ internal static class ContextualSelectionActionsPatch
 			.GroupBy(i => i.Type, i => i.Node)
 			.Select(i => (i.Key, (IEnumerable<Type>)i))
 			.Concat([
-			  (typeof(Rect), [typeof(RectToXYWH), typeof(RectToMinMax), typeof(RectToPositionSize)]),
-			(typeof(SphericalHarmonicsL1<>),  [typeof(UnpackSH1<>)]),
-			(typeof(SphericalHarmonicsL2<>),  [typeof(UnpackSH2<>)]),
-			(typeof(SphericalHarmonicsL3<>),  [typeof(UnpackSH3<>)]),
-			(typeof(SphericalHarmonicsL4<>),  [typeof(UnpackSH4<>)]),
+				(typeof(Rect), [typeof(RectToXYWH), typeof(RectToMinMax), typeof(RectToPositionSize)]),
+				(typeof(SphericalHarmonicsL1<>),  [typeof(UnpackSH1<>)]),
+				(typeof(SphericalHarmonicsL2<>),  [typeof(UnpackSH2<>)]),
+				(typeof(SphericalHarmonicsL3<>),  [typeof(UnpackSH3<>)]),
+				(typeof(SphericalHarmonicsL4<>),  [typeof(UnpackSH4<>)]),
 			])
 			.ToDictionary(i => i.Item1, i => i.Item2.ToList());
 

@@ -20,9 +20,9 @@ static partial class ContextualSwapActionsPatch
 			foreach (var match in matchingNodes)
 			{
 				yield return new MenuItem(
-				  node: match,
-				  name: match.GetNiceTypeName().Contains("Multi_") ? FormatMultiName(match) : null,
-				  connectionTransferType: ConnectionTransferType.ByIndexLossy
+					node: match,
+					name: match.GetNiceTypeName().Contains("Multi_") ? FormatMultiName(match) : null,
+					connectionTransferType: ConnectionTransferType.ByIndexLossy
 				);
 			}
 			if (context.NodeType.GetNiceTypeName().Contains("Multi_"))
@@ -30,9 +30,9 @@ static partial class ContextualSwapActionsPatch
 				foreach (var match in MinMaxMultiGroup)
 				{
 					yield return new MenuItem(
-					  node: match.MakeGenericType([.. genericTypes]),
-					  name: FormatMultiName(match),
-					  connectionTransferType: ConnectionTransferType.ByIndexLossy
+						node: match.MakeGenericType([.. genericTypes]),
+						name: FormatMultiName(match),
+						connectionTransferType: ConnectionTransferType.ByIndexLossy
 					);
 				}
 			}
@@ -41,8 +41,8 @@ static partial class ContextualSwapActionsPatch
 				foreach (var match in MinMaxGroup)
 				{
 					yield return new MenuItem(
-					  node: match.MakeGenericType([.. genericTypes]),
-					  connectionTransferType: ConnectionTransferType.ByIndexLossy
+						node: match.MakeGenericType([.. genericTypes]),
+						connectionTransferType: ConnectionTransferType.ByIndexLossy
 					);
 				}
 			}

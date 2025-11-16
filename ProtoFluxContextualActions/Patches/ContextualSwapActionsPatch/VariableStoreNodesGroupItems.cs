@@ -14,17 +14,17 @@ static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> VariableStoreNodesGroup = [
 		typeof(LocalValue<>),
-	typeof(LocalObject<>),
-	typeof(StoredValue<>),
-	typeof(StoredObject<>),
-	typeof(DataModelUserRefStore),
-	typeof(DataModelTypeStore),
-	typeof(DataModelObjectAssetRefStore<>),
-	typeof(DataModelObjectAssetRefStore<>),
-	typeof(DataModelValueFieldStore<>),
-	typeof(DataModelObjectRefStore<>),
-	typeof(DataModelObjectFieldStore<>),
-  ];
+		typeof(LocalObject<>),
+		typeof(StoredValue<>),
+		typeof(StoredObject<>),
+		typeof(DataModelUserRefStore),
+		typeof(DataModelTypeStore),
+		typeof(DataModelObjectAssetRefStore<>),
+		typeof(DataModelObjectAssetRefStore<>),
+		typeof(DataModelValueFieldStore<>),
+		typeof(DataModelObjectRefStore<>),
+		typeof(DataModelObjectFieldStore<>),
+	];
 
 	internal static IEnumerable<MenuItem> VariableStoreNodesGroupItems(ContextualContext context)
 	{

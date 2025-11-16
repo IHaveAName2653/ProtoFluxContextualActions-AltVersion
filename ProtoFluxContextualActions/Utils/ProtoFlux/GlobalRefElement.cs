@@ -18,9 +18,9 @@ public readonly struct GlobalRefElement(INode owner, int index, int? elementList
 	}
 
 	public readonly string DisplayName =>
-	  ElementListIndex is int listIndex
-		? throw new NotImplementedException()
-		: OwnerNode.GetGlobalRefName(ElementIndex);
+		ElementListIndex is int listIndex
+			? throw new NotImplementedException()
+			: OwnerNode.GetGlobalRefName(ElementIndex);
 
 
 	public readonly Type ValueType => OwnerNode.GetGlobalRefValueType(ElementIndex);

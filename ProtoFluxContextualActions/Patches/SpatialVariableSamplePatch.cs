@@ -32,14 +32,14 @@ internal static class SpatialVariableSamplePatch
 			{
 				// todo: valid generic checking
 				var variableInput = GetNodeForType(variableType, [
-			new NodeTypeRecord(typeof(SampleValueSpatialVariable<>), null, null),
-		  new NodeTypeRecord(typeof(SampleObjectSpatialVariable<>), null, null),
-			  ]);
+					new NodeTypeRecord(typeof(SampleValueSpatialVariable<>), null, null),
+					new NodeTypeRecord(typeof(SampleObjectSpatialVariable<>), null, null),
+				]);
 
 				__instance.SpawnNode(variableInput, n =>
-			  {
-				  __instance.ActiveHandler.CloseContextMenu();
-			  });
+				{
+					__instance.ActiveHandler.CloseContextMenu();
+				});
 			};
 		}
 	}

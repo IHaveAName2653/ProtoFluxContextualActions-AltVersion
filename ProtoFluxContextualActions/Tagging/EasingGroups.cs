@@ -11,92 +11,92 @@ static class EasingGroups
 
 	// todo: currently there's too many, page support or custom uix menus are needed
 	public static readonly Type[] EasingInGroupFloat = [
-	  typeof(EaseInBounceFloat),
-	typeof(EaseInCircularFloat),
-	typeof(EaseInCubicFloat),
-	typeof(EaseInElasticFloat),
-	typeof(EaseInExponentialFloat),
-	typeof(EaseInQuadraticFloat),
-	typeof(EaseInQuarticFloat),
-	typeof(EaseInQuinticFloat),
-	typeof(EaseInReboundFloat),
-	typeof(EaseInSineFloat),
-  ];
+		typeof(EaseInBounceFloat),
+		typeof(EaseInCircularFloat),
+		typeof(EaseInCubicFloat),
+		typeof(EaseInElasticFloat),
+		typeof(EaseInExponentialFloat),
+		typeof(EaseInQuadraticFloat),
+		typeof(EaseInQuarticFloat),
+		typeof(EaseInQuinticFloat),
+		typeof(EaseInReboundFloat),
+		typeof(EaseInSineFloat),
+	];
 
 	public static readonly Type[] EasingOutGroupFloat = [
-	  typeof(EaseOutBounceFloat),
-	typeof(EaseOutCircularFloat),
-	typeof(EaseOutCubicFloat),
-	typeof(EaseOutElasticFloat),
-	typeof(EaseOutExponentialFloat),
-	typeof(EaseOutQuadraticFloat),
-	typeof(EaseOutQuarticFloat),
-	typeof(EaseOutQuinticFloat),
-	typeof(EaseOutReboundFloat),
-	typeof(EaseOutSineFloat),
-  ];
+		typeof(EaseOutBounceFloat),
+		typeof(EaseOutCircularFloat),
+		typeof(EaseOutCubicFloat),
+		typeof(EaseOutElasticFloat),
+		typeof(EaseOutExponentialFloat),
+		typeof(EaseOutQuadraticFloat),
+		typeof(EaseOutQuarticFloat),
+		typeof(EaseOutQuinticFloat),
+		typeof(EaseOutReboundFloat),
+		typeof(EaseOutSineFloat),
+	];
 
 	public static readonly Type[] EasingInOutGroupFloat = [
-	  typeof(EaseInOutBounceFloat),
-	typeof(EaseInOutCircularFloat),
-	typeof(EaseInOutCubicFloat),
-	typeof(EaseInOutElasticFloat),
-	typeof(EaseInOutExponentialFloat),
-	typeof(EaseInOutQuadraticFloat),
-	typeof(EaseInOutQuarticFloat),
-	typeof(EaseInOutQuinticFloat),
-	typeof(EaseInOutReboundFloat),
-	typeof(EaseInOutSineFloat),
-  ];
+		typeof(EaseInOutBounceFloat),
+		typeof(EaseInOutCircularFloat),
+		typeof(EaseInOutCubicFloat),
+		typeof(EaseInOutElasticFloat),
+		typeof(EaseInOutExponentialFloat),
+		typeof(EaseInOutQuadraticFloat),
+		typeof(EaseInOutQuarticFloat),
+		typeof(EaseInOutQuinticFloat),
+		typeof(EaseInOutReboundFloat),
+		typeof(EaseInOutSineFloat),
+	];
 
 	public static readonly Type[] EasingInGroupDouble = [
-	  typeof(EaseInBounceDouble),
-	typeof(EaseInCircularDouble),
-	typeof(EaseInCubicDouble),
-	typeof(EaseInElasticDouble),
-	typeof(EaseInExponentialDouble),
-	typeof(EaseInQuadraticDouble),
-	typeof(EaseInQuarticDouble),
-	typeof(EaseInQuinticDouble),
-	typeof(EaseInReboundDouble),
-	typeof(EaseInSineDouble),
-  ];
+		typeof(EaseInBounceDouble),
+		typeof(EaseInCircularDouble),
+		typeof(EaseInCubicDouble),
+		typeof(EaseInElasticDouble),
+		typeof(EaseInExponentialDouble),
+		typeof(EaseInQuadraticDouble),
+		typeof(EaseInQuarticDouble),
+		typeof(EaseInQuinticDouble),
+		typeof(EaseInReboundDouble),
+		typeof(EaseInSineDouble),
+	];
 
 	public static readonly Type[] EasingOutGroupDouble = [
-	  typeof(EaseOutBounceDouble),
-	typeof(EaseOutCircularDouble),
-	typeof(EaseOutCubicDouble),
-	typeof(EaseOutElasticDouble),
-	typeof(EaseOutExponentialDouble),
-	typeof(EaseOutQuadraticDouble),
-	typeof(EaseOutQuarticDouble),
-	typeof(EaseOutQuinticDouble),
-	typeof(EaseOutReboundDouble),
-	typeof(EaseOutSineDouble),
-  ];
+		typeof(EaseOutBounceDouble),
+		typeof(EaseOutCircularDouble),
+		typeof(EaseOutCubicDouble),
+		typeof(EaseOutElasticDouble),
+		typeof(EaseOutExponentialDouble),
+		typeof(EaseOutQuadraticDouble),
+		typeof(EaseOutQuarticDouble),
+		typeof(EaseOutQuinticDouble),
+		typeof(EaseOutReboundDouble),
+		typeof(EaseOutSineDouble),
+	];
 
 	public static readonly Type[] EasingInOutGroupDouble = [
-	  typeof(EaseInOutBounceDouble),
-	typeof(EaseInOutCircularDouble),
-	typeof(EaseInOutCubicDouble),
-	typeof(EaseInOutElasticDouble),
-	typeof(EaseInOutExponentialDouble),
-	typeof(EaseInOutQuadraticDouble),
-	typeof(EaseInOutQuarticDouble),
-	typeof(EaseInOutQuinticDouble),
-	typeof(EaseInOutReboundDouble),
-	typeof(EaseInOutSineDouble),
-  ];
+		typeof(EaseInOutBounceDouble),
+		typeof(EaseInOutCircularDouble),
+		typeof(EaseInOutCubicDouble),
+		typeof(EaseInOutElasticDouble),
+		typeof(EaseInOutExponentialDouble),
+		typeof(EaseInOutQuadraticDouble),
+		typeof(EaseInOutQuarticDouble),
+		typeof(EaseInOutQuinticDouble),
+		typeof(EaseInOutReboundDouble),
+		typeof(EaseInOutSineDouble),
+	];
 
 	public static bool ContainsNodeFloat(Type type) =>
-	  EasingInGroupFloat.Contains(type)
-	  || EasingOutGroupFloat.Contains(type)
-	  || EasingInOutGroupFloat.Contains(type);
+		EasingInGroupFloat.Contains(type)
+		|| EasingOutGroupFloat.Contains(type)
+		|| EasingInOutGroupFloat.Contains(type);
 
 	public static bool ContainsNodeDouble(Type type) =>
-	  EasingInGroupFloat.Contains(type)
-	  || EasingOutGroupFloat.Contains(type)
-	  || EasingInOutGroupFloat.Contains(type);
+		EasingInGroupFloat.Contains(type)
+		|| EasingOutGroupFloat.Contains(type)
+		|| EasingInOutGroupFloat.Contains(type);
 
 	public static IEnumerable<Type> GetEasingOfSameKindFloat(Type nodeType)
 	{

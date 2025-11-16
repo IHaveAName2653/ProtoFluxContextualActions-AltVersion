@@ -11,7 +11,7 @@ static partial class ContextualSwapActionsPatch
 	{
 		var psuedoGenerics = context.World.GetPsuedoGenericTypesForWorld();
 		var sinCosSwapMap =
-		  psuedoGenerics.Sin.Select(a => a.Node)
+			psuedoGenerics.Sin.Select(a => a.Node)
 			.Zip(psuedoGenerics.Cos.Select(a => a.Node))
 			.ToBiDictionary();
 

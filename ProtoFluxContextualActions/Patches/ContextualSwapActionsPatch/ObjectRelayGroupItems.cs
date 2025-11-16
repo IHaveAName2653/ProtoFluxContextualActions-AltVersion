@@ -8,8 +8,8 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> ObjectRelayGroup = [
-	  typeof(ObjectRelay<>),
-	typeof(ContinuouslyChangingObjectRelay<>)
+		typeof(ObjectRelay<>),
+		typeof(ContinuouslyChangingObjectRelay<>)
 	];
 
 	internal static IEnumerable<MenuItem> ObjectRelayGroupItems(ContextualContext context)

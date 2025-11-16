@@ -11,9 +11,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> MinMaxMultiGroup = [
-	  typeof(ValueMinMulti<>),
-	typeof(ValueMaxMulti<>),
-  ];
+		typeof(ValueMinMulti<>),
+		typeof(ValueMaxMulti<>),
+	];
 
 	internal static IEnumerable<MenuItem> MinMaxMultiGroupItems(ContextualContext context)
 	{
@@ -29,16 +29,16 @@ static partial class ContextualSwapActionsPatch
 			}
 
 			var matchingNodes = avgGroup
-			  .Where(a => a.Value.FirstOrDefault() == innerType)
-			  .Select(a => a.Key)
-			  .Where(a => a.GetNiceTypeName().Contains("Multi_"));
+				.Where(a => a.Value.FirstOrDefault() == innerType)
+				.Select(a => a.Key)
+				.Where(a => a.GetNiceTypeName().Contains("Multi_"));
 
 			foreach (var match in matchingNodes)
 			{
 				yield return new MenuItem(
-				  node: match,
-				  name: FormatMultiName(match),
-				  connectionTransferType: ConnectionTransferType.ByIndexLossy
+					node: match,
+					name: FormatMultiName(match),
+					connectionTransferType: ConnectionTransferType.ByIndexLossy
 				);
 			}
 		}

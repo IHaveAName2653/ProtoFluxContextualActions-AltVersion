@@ -11,7 +11,7 @@ namespace ProtoFluxContextualActions.Extensions;
 internal static partial class NodeExtensions
 {
 	public static IEnumerable<(INode instance, ProtoFluxNode node)> NodeInstances(this ProtoFluxNodeGroup group) =>
-	  group.Nodes.Select(node => (node.NodeInstance, node));
+		group.Nodes.Select(node => (node.NodeInstance, node));
 
 	public static IEnumerable<IImpulseList> ImpulseLists(this INode node)
 	{

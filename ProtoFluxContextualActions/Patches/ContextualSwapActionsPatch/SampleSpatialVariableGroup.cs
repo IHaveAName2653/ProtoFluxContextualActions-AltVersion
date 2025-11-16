@@ -10,12 +10,12 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly FrozenSet<Type> SampleSpatialVariableGroup = [
-	  // typeof(SampleBooleanSpatialVariable),
-	  typeof(SampleValueSpatialVariable<>),
-	typeof(SampleMinMaxSpatialVariable<>),
-	typeof(SampleNumericSpatialVariable<>),
-	typeof(SampleSpatialVariablePartialDerivative<>),
-  ];
+		// typeof(SampleBooleanSpatialVariable),
+		typeof(SampleValueSpatialVariable<>),
+		typeof(SampleMinMaxSpatialVariable<>),
+		typeof(SampleNumericSpatialVariable<>),
+		typeof(SampleSpatialVariablePartialDerivative<>),
+	];
 
 	internal static IEnumerable<MenuItem> SampleSpatialVariableGroupItems(ContextualContext context)
 	{

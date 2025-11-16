@@ -11,13 +11,13 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> ArithmeticOneGroup = [
-	  typeof(ValueInc<>),
-	typeof(ValueDec<>),
-	typeof(ValueIncrement<>),
-	typeof(ValueDecrement<>),
-	typeof(ValueIncrement<,>),
-	typeof(ValueDecrement<,>),
-  ];
+		typeof(ValueInc<>),
+		typeof(ValueDec<>),
+		typeof(ValueIncrement<>),
+		typeof(ValueDecrement<>),
+		typeof(ValueIncrement<,>),
+		typeof(ValueDecrement<,>),
+	];
 
 	internal static IEnumerable<MenuItem> ArithmeticOneGroupItems(ContextualContext context)
 	{

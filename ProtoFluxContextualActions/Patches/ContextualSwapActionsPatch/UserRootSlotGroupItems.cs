@@ -7,10 +7,10 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> UserRootSlotGroup = [
-	  typeof(HeadSlot),
-	typeof(HandSlot),
-	typeof(ControllerSlot),
-  ];
+		typeof(HeadSlot),
+		typeof(HandSlot),
+		typeof(ControllerSlot),
+	];
 
 	internal static IEnumerable<MenuItem> UserRootSlotGroupItems(ContextualContext context)
 	{

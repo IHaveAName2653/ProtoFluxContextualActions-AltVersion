@@ -11,16 +11,16 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> EnumShiftGroup = [
-	  typeof(NextValue<>),
-	typeof(PreviousValue<>),
-	typeof(ShiftEnum<>),
-  ];
+		typeof(NextValue<>),
+		typeof(PreviousValue<>),
+		typeof(ShiftEnum<>),
+	];
 
 	static readonly BiDictionary<Type, Type> EnumToNumberGroup =
-	  NodeUtils.EnumToNumberTypeMap.Values.Zip(NodeUtils.TryEnumToNumberTypeMap.Values).ToBiDictionary();
+		NodeUtils.EnumToNumberTypeMap.Values.Zip(NodeUtils.TryEnumToNumberTypeMap.Values).ToBiDictionary();
 
 	static readonly BiDictionary<Type, Type> NumberToEnumGroup =
-	  NodeUtils.NumberToEnumTypeMap.Values.Zip(NodeUtils.TryNumberToEnumTypeMap.Values).ToBiDictionary();
+		NodeUtils.NumberToEnumTypeMap.Values.Zip(NodeUtils.TryNumberToEnumTypeMap.Values).ToBiDictionary();
 
 	internal static IEnumerable<MenuItem> EnumShiftGroupItems(ContextualContext context)
 	{

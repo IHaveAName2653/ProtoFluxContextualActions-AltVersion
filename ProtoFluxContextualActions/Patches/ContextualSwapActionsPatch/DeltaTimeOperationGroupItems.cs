@@ -8,9 +8,9 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	public static readonly HashSet<Type> DeltaTimeOperationGroup = [
-	  typeof(MulDeltaTime<>),
-	typeof(DivDeltaTime<>),
-  ];
+		typeof(MulDeltaTime<>),
+		typeof(DivDeltaTime<>),
+	];
 
 	internal static IEnumerable<MenuItem> DeltaTimeOperationGroupItems(ContextualContext context)
 	{

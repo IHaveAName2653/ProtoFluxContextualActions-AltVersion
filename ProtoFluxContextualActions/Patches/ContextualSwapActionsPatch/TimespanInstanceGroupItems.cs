@@ -7,13 +7,13 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly HashSet<Type> TimespanInstanceGroup = [
-	  typeof(TimeSpanFromDays),
-	typeof(TimeSpanFromHours),
-	typeof(TimeSpanFromMilliseconds),
-	typeof(TimeSpanFromMinutes),
-	typeof(TimeSpanFromSeconds),
-	typeof(TimeSpanFromTicks),
-  ];
+		typeof(TimeSpanFromDays),
+		typeof(TimeSpanFromHours),
+		typeof(TimeSpanFromMilliseconds),
+		typeof(TimeSpanFromMinutes),
+		typeof(TimeSpanFromSeconds),
+		typeof(TimeSpanFromTicks),
+	];
 
 	internal static IEnumerable<MenuItem> TimespanInstanceGroupItems(ContextualContext context)
 	{

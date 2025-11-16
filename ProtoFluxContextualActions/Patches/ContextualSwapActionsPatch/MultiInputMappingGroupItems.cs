@@ -11,14 +11,14 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly BiDictionary<Type, Type> MultiInputMappingGroup = new()
-  {
-	{typeof(ValueAdd<>), typeof(ValueAddMulti<>)},
-	{typeof(ValueSub<>), typeof(ValueSubMulti<>)},
-	{typeof(ValueMul<>), typeof(ValueMulMulti<>)},
-	{typeof(ValueDiv<>), typeof(ValueDivMulti<>)},
-	{typeof(ValueMin<>), typeof(ValueMinMulti<>)},
-	{typeof(ValueMax<>), typeof(ValueMaxMulti<>)},
-  };
+	{
+		{typeof(ValueAdd<>), typeof(ValueAddMulti<>)},
+		{typeof(ValueSub<>), typeof(ValueSubMulti<>)},
+		{typeof(ValueMul<>), typeof(ValueMulMulti<>)},
+		{typeof(ValueDiv<>), typeof(ValueDivMulti<>)},
+		{typeof(ValueMin<>), typeof(ValueMinMulti<>)},
+		{typeof(ValueMax<>), typeof(ValueMaxMulti<>)},
+	};
 
 	internal static IEnumerable<MenuItem> MultiInputMappingGroupItems(ContextualContext context)
 	{
@@ -28,9 +28,9 @@ static partial class ContextualSwapActionsPatch
 			{
 				var binopType = context.NodeType.GenericTypeArguments[0];
 				yield return new MenuItem(
-				  node: mapped.MakeGenericType(binopType),
-				  name: mapped.GetNiceTypeName(),
-				  connectionTransferType: ConnectionTransferType.ByIndexLossy
+					node: mapped.MakeGenericType(binopType),
+					name: mapped.GetNiceTypeName(),
+					connectionTransferType: ConnectionTransferType.ByIndexLossy
 				);
 			}
 			else if (MultiInputMappingGroup.TryGetFirst(genericType, out mapped))

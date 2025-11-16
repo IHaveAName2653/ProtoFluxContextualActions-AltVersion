@@ -121,7 +121,7 @@ public static class SwapHelper
   };
 
 	internal static bool TryGetOutputMap((Type, Type) typeTuple, [MaybeNullWhen(false)] out (string FromName, string ToName)[] elementMap) =>
-	  TryGetTypeTupleMapping(OutputMap, typeTuple, out elementMap);
+		TryGetTypeTupleMapping(OutputMap, typeTuple, out elementMap);
 
 	internal static void TransferOutputs(INode from, INode to, NodeQueryAcceleration query, bool tryByIndex = false)
 	{
@@ -163,13 +163,13 @@ public static class SwapHelper
 	}
 
 	internal static Dictionary<(Type, Type), (string FromName, string ToName)[]> InputMap = new() {
-	{(typeof(For), typeof(RangeLoopInt)), [("Count", "End")]},
-	{(typeof(ValueNegate<>), typeof(ValuePlusMinus<>)), [("N", "Offset")]},
-	{(typeof(FindChildByName), typeof(FindChildByTag)), [("Name", "Tag")]},
-  };
+		{(typeof(For), typeof(RangeLoopInt)), [("Count", "End")]},
+		{(typeof(ValueNegate<>), typeof(ValuePlusMinus<>)), [("N", "Offset")]},
+		{(typeof(FindChildByName), typeof(FindChildByTag)), [("Name", "Tag")]},
+	};
 
 	internal static bool TryGetInput((Type, Type) typeTuple, [MaybeNullWhen(false)] out (string FromName, string ToName)[] elementMap) =>
-	  TryGetTypeTupleMapping(InputMap, typeTuple, out elementMap);
+		TryGetTypeTupleMapping(InputMap, typeTuple, out elementMap);
 
 
 	internal static void TransferInputs(INode from, INode to, bool tryByIndex = false)

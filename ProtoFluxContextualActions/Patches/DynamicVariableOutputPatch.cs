@@ -32,45 +32,45 @@ internal static class DynamicVariableOutputPatch
 			item.Button.LocalPressed += (button, data) =>
 			{
 				var variableInput = GetNodeForType(variableType, [
-			new NodeTypeRecord(typeof(DynamicVariableValueInput<>), null, null),
-		  new NodeTypeRecord(typeof(DynamicVariableObjectInput<>), null, null),
-			  ]);
+					new NodeTypeRecord(typeof(DynamicVariableValueInput<>), null, null),
+					new NodeTypeRecord(typeof(DynamicVariableObjectInput<>), null, null),
+				]);
 
 				__instance.SpawnNode(variableInput, n =>
-			  {
-				  var globalValue = n.Slot.AttachComponent<GlobalValue<string>>();
-				  globalValue.SetValue(variableName);
-				  n.GetGlobalRef(0).Target = globalValue;
-				  __instance.ActiveHandler.CloseContextMenu();
-			  });
+				{
+					var globalValue = n.Slot.AttachComponent<GlobalValue<string>>();
+					globalValue.SetValue(variableName);
+					n.GetGlobalRef(0).Target = globalValue;
+					__instance.ActiveHandler.CloseContextMenu();
+				});
 			};
 			label = "Read";
 			var item2 = menu.AddItem(in label, Icon_Color_Output, RadiantUI_Constants.Hero.CYAN);
 			item2.Button.LocalPressed += (button, data) =>
 			{
 				var variableRead = GetNodeForType(variableType, [
-			new NodeTypeRecord(typeof(ReadDynamicValueVariable<>), null, null),
-		  new NodeTypeRecord(typeof(ReadDynamicObjectVariable<>), null, null),
-			  ]);
+					new NodeTypeRecord(typeof(ReadDynamicValueVariable<>), null, null),
+					new NodeTypeRecord(typeof(ReadDynamicObjectVariable<>), null, null),
+				]);
 				var variableNameInput = typeof(ValueObjectInput<string>);
 
 				INodeOutput? inputOutput = null;
 				__instance.SpawnNode(variableNameInput, n =>
-		  {
-			  ((ValueObjectInput<string>)n).Value.Value = variableName;
-			  inputOutput = n.GetOutput(0);
-			  float3 upDir = n.Slot.Up;
-			  float3 rightDir = n.Slot.Right;
-			  float3 scaling = n.Slot.LocalScale;
+				{
+					((ValueObjectInput<string>)n).Value.Value = variableName;
+					inputOutput = n.GetOutput(0);
+					float3 upDir = n.Slot.Up;
+					float3 rightDir = n.Slot.Right;
+					float3 scaling = n.Slot.LocalScale;
 
-			  float3 delta = (upDir * -0.015f) + (rightDir * -0.25f);
-			  n.Slot.LocalPosition += delta * scaling;
-		  });
+					float3 delta = (upDir * -0.015f) + (rightDir * -0.25f);
+					n.Slot.LocalPosition += delta * scaling;
+				});
 				__instance.SpawnNode(variableRead, n =>
-		  {
-			  n.GetInput(1).Target = inputOutput;
-			  __instance.ActiveHandler.CloseContextMenu();
-		  });
+				{
+					n.GetInput(1).Target = inputOutput;
+					__instance.ActiveHandler.CloseContextMenu();
+				});
 			};
 
 			label = "Write";
@@ -78,28 +78,28 @@ internal static class DynamicVariableOutputPatch
 			item3.Button.LocalPressed += (button, data) =>
 			{
 				var variableRead = GetNodeForType(variableType, [
-			new NodeTypeRecord(typeof(WriteDynamicValueVariable<>), null, null),
-		  new NodeTypeRecord(typeof(WriteDynamicObjectVariable<>), null, null),
-			  ]);
+					new NodeTypeRecord(typeof(WriteDynamicValueVariable<>), null, null),
+					new NodeTypeRecord(typeof(WriteDynamicObjectVariable<>), null, null),
+				]);
 				var variableNameInput = typeof(ValueObjectInput<string>);
 
 				INodeOutput? inputOutput = null;
 				__instance.SpawnNode(variableNameInput, n =>
-		  {
-			  ((ValueObjectInput<string>)n).Value.Value = variableName;
-			  inputOutput = n.GetOutput(0);
-			  float3 upDir = n.Slot.Up;
-			  float3 rightDir = n.Slot.Right;
-			  float3 scaling = n.Slot.LocalScale;
+				{
+					((ValueObjectInput<string>)n).Value.Value = variableName;
+					inputOutput = n.GetOutput(0);
+					float3 upDir = n.Slot.Up;
+					float3 rightDir = n.Slot.Right;
+					float3 scaling = n.Slot.LocalScale;
 
-			  float3 delta = (upDir * -0.015f) + (rightDir * -0.25f);
-			  n.Slot.LocalPosition += delta * scaling;
-		  });
+					float3 delta = (upDir * -0.015f) + (rightDir * -0.25f);
+					n.Slot.LocalPosition += delta * scaling;
+				});
 				__instance.SpawnNode(variableRead, n =>
-		  {
-			  n.GetInput(1).Target = inputOutput;
-			  __instance.ActiveHandler.CloseContextMenu();
-		  });
+				{
+					n.GetInput(1).Target = inputOutput;
+					__instance.ActiveHandler.CloseContextMenu();
+				});
 			};
 		}
 	}

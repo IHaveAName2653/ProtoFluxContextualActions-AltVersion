@@ -10,19 +10,19 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly BiDictionary<Type, Type> GetUserRootSwapGroup =
-	  Groups.UserRootPositionGroup.Zip(Groups.UserRootRotationGroup).ToBiDictionary();
+		Groups.UserRootPositionGroup.Zip(Groups.UserRootRotationGroup).ToBiDictionary();
 
 	static readonly BiDictionary<Type, Type> UserRootPositionSwapGroup =
-	  Groups.UserRootPositionGroup.Zip(Groups.SetUserRootPositionGroup).ToBiDictionary();
+		Groups.UserRootPositionGroup.Zip(Groups.SetUserRootPositionGroup).ToBiDictionary();
 
 	static readonly BiDictionary<Type, Type> UserRootRotationSwapGroup =
-	  Groups.UserRootRotationGroup.Zip(Groups.SetUserRootRotationGroup).ToBiDictionary();
+		Groups.UserRootRotationGroup.Zip(Groups.SetUserRootRotationGroup).ToBiDictionary();
 
 	static readonly BiDictionary<Type, Type> SetUserRootSwapGroup =
-	  Groups.SetUserRootPositionGroup.Zip(Groups.SetUserRootRotationGroup).ToBiDictionary();
+		Groups.SetUserRootPositionGroup.Zip(Groups.SetUserRootRotationGroup).ToBiDictionary();
 
 	static readonly BiDictionary<Type, Type> UserRootHeadRotationSwapGroup =
-	  Groups.UserRootHeadRotationGroup.Zip(Groups.SetUserRootHeadRotationGroup).ToBiDictionary();
+		Groups.UserRootHeadRotationGroup.Zip(Groups.SetUserRootHeadRotationGroup).ToBiDictionary();
 
 	internal static IEnumerable<MenuItem> UserRootSwapGroups(Type nodeType)
 	{

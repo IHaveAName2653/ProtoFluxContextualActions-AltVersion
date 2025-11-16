@@ -11,7 +11,7 @@ static partial class ContextualSwapActionsPatch
 	{
 		var psuedoGenericTypes = context.World.GetPsuedoGenericTypesForWorld();
 		var binaryOperationsGroup =
-		  psuedoGenericTypes.Log
+			psuedoGenericTypes.Log
 			.Concat(psuedoGenericTypes.Log10)
 			.Concat(psuedoGenericTypes.LogN)
 			.ToDictionary();

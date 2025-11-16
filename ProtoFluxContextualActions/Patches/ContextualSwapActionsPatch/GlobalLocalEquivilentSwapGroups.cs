@@ -11,12 +11,12 @@ namespace ProtoFluxContextualActions.Patches;
 static partial class ContextualSwapActionsPatch
 {
 	static readonly BiDictionary<Type, Type> SetGlobalLocalEquivilents =
-	  Groups.SetSlotTranformGlobalOperationGroup.Zip(Groups.SetSlotTranformLocalOperationGroup).ToBiDictionary();
+		Groups.SetSlotTranformGlobalOperationGroup.Zip(Groups.SetSlotTranformLocalOperationGroup).ToBiDictionary();
 
 	static readonly BiDictionary<Type, Type> GetGlobalLocalEquivilents = new()
-  {
-	{typeof(GlobalTransform), typeof(LocalTransform)}
-  };
+	{
+		{typeof(GlobalTransform), typeof(LocalTransform)}
+	};
 
 	internal static IEnumerable<MenuItem> GlobalLocalEquivilentSwapGroups(Type nodeType)
 	{
