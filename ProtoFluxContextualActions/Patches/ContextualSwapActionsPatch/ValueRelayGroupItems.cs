@@ -1,0 +1,25 @@
+using ProtoFlux.Runtimes.Execution.Nodes;
+using ProtoFluxContextualActions.Utils;
+using System;
+using System.Collections.Generic;
+
+namespace ProtoFluxContextualActions.Patches;
+
+static partial class ContextualSwapActionsPatch
+{
+	static readonly HashSet<Type> ValueRelayGroup = [
+	  typeof(ValueRelay<>),
+	typeof(ContinuouslyChangingValueRelay<>)
+	];
+
+	internal static IEnumerable<MenuItem> ValueRelayGroupItems(ContextualContext context)
+	{
+		if (context.NodeType.TryGetGenericTypeDefinition(out var genericType) && ValueRelayGroup.Contains(genericType))
+		{
+			foreach (var match in ValueRelayGroup)
+			{
+				yield return new MenuItem(match.MakeGenericType(context.NodeType.GenericTypeArguments));
+			}
+		}
+	}
+}

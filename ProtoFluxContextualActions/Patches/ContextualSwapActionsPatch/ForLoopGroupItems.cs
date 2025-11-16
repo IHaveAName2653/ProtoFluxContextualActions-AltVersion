@@ -1,0 +1,29 @@
+using ProtoFlux.Runtimes.Execution.Nodes;
+using System;
+using System.Collections.Generic;
+
+namespace ProtoFluxContextualActions.Patches;
+
+static partial class ContextualSwapActionsPatch
+{
+	// todo: async
+	static readonly HashSet<Type> ForLoopGroup = [
+	  typeof(For),
+	typeof(While),
+	typeof(RangeLoopInt),
+	typeof(AsyncFor),
+	typeof(AsyncWhile),
+	typeof(AsyncRangeLoopInt),
+  ];
+
+	internal static IEnumerable<MenuItem> ForLoopGroupItems(ContextualContext context)
+	{
+		if (ForLoopGroup.Contains(context.NodeType))
+		{
+			foreach (var match in ForLoopGroup)
+			{
+				yield return new MenuItem(match, connectionTransferType: ConnectionTransferType.ByMappingsLossy);
+			}
+		}
+	}
+}

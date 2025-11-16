@@ -1,0 +1,146 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>ProtoFluxContextualActions</RootNamespace>
+		<AssemblyName>ProtoFluxContextualActions</AssemblyName>
+		<AssemblyTitle>ProtoFlux Contextual Actions</AssemblyTitle>
+		<Description>Adds additional contextual actions for protoflux.</Description>
+		<Authors>bree</Authors>
+		<RepositoryUrl>https://github.com/brecert/ProtoFluxContextualActions</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>Resonite,Mod,ResoniteModLoader,Tweaks,ProtoFlux</PackageTags>
+		<Version>0.0.12.0</Version>
+		<PackageReadmeFile>../README.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Product>$(AssemblyTitle)</Product>
+		<Copyright>Copyright (c) 2025 $(Authors)</Copyright>
+		<PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>False</GenerateDocumentationFile>
+		<DelaySign>False</DelaySign>
+		<Title>ProtoFlux Contextual Actions</Title>
+	</PropertyGroup>
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net9</TargetFramework>
+        <ResoniteProjectType>mod</ResoniteProjectType>
+        <ResoniteTarget>client</ResoniteTarget>
+        <ResoniteInstallOnBuild>true</ResoniteInstallOnBuild>
+		<ResonitePath></ResonitePath> <!-- This is here just so its defined as empty, probably -->
+    </PropertyGroup>
+
+	<!-- Resonite Install Paths -->
+	<PropertyGroup>
+    	<!-- Windows Install paths (Any common path) -->
+    	<WinPath1>C:\Program Files (x86)\Steam\steamapps\common\Resonite\</WinPath1>
+    	<WinPath2>D:\SteamLibrary\steamapps\common\Resonite\</WinPath2>
+    	<WinPath3>E:\SteamLibrary\steamapps\common\Resonite\</WinPath3>
+
+    	<!-- Linux Install paths (all 1 of them) -->
+    	<LinuxPath1>$(HOME)/.steam/steam/steamapps/common/Resonite/</LinuxPath1>
+
+    	<!-- Fallback path, if its somehow null (Value provided from the base mod) -->
+    	<FallbackPath>D:\Program Files (x86)\Steam\steamapps\common\Resonite\</FallbackPath>
+	</PropertyGroup>
+	
+	<!-- Actually use the defined paths -->
+	<Choose>
+		<!-- Windows paths -->
+		<When Condition="'$(OS)' == 'Windows_NT'">
+			<PropertyGroup>
+				<ResonitePath Condition="'$(ResonitePath)' == '' and Exists('$(WinPath1)')">$(WinPath1)</ResonitePath>
+				<ResonitePath Condition="'$(ResonitePath)' == '' and Exists('$(WinPath2)')">$(WinPath2)</ResonitePath>
+				<ResonitePath Condition="'$(ResonitePath)' == '' and Exists('$(WinPath3)')">$(WinPath3)</ResonitePath>
+			</PropertyGroup>
+		</When>
+		<!-- Linux paths -->
+		<When Condition="'$(OS)' != 'Windows_NT'">
+			<PropertyGroup>
+				<ResonitePath Condition=" '$(ResonitePath)' == '' and Exists('/home/user/example') ">
+					/home/user/example
+				</ResonitePath>
+			</PropertyGroup>
+		</When>
+	</Choose>
+	
+	<!-- Fallback -->
+	<PropertyGroup>
+		<ResonitePath Condition="'$(ResonitePath)' == ''">$(FallbackPath)</ResonitePath>
+	</PropertyGroup>
+
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ResoniteReference Include="FrooxEngine" />
+        <ResoniteReference Include="ProtoFlux.Core" />
+        <ResoniteReference Include="ProtoFlux.Nodes.Core" />
+        <ResoniteReference Include="ProtoFlux.Nodes.FrooxEngine" />
+        <ResoniteReference Include="ProtoFluxBindings" />
+        <ResoniteReference Include="Elements.Core" />
+        <ResoniteReference Include="Elements.Quantity" />
+        <ResoniteReference Include="Renderite.Shared" />
+        <ResoniteReference Include="SharpPipe" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <ResoniteAssemblyPath>$(ResonitePath)</ResoniteAssemblyPath>
+        <ReferencePath>$(ResoniteAssemblyPath);$(ReferencePath)</ReferencePath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <DefineConstants>$(DefineConstants);#DEBUG</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="@(ResoniteReference)">
+            <Name>%(ResoniteReference.Identity)</Name>
+            <HintPath Condition="'%(HintPath)' == '' And Exists('$(ResoniteAssemblyPath)/%(Identity).dll')">$(ResoniteAssemblyPath)/%(Identity).dll</HintPath>
+            <HintPath Condition="'%(HintPath)' == '' And Exists('$(ResoniteAssemblyPath)/%(Identity).exe')">$(ResoniteAssemblyPath)/%(Identity).exe</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="ResoniteModLoader">
+        <HintPath>$(ResonitePath)ResoniteModLoader.dll</HintPath>
+        <HintPath>$(ResonitePath)Libraries\ResoniteModLoader.dll</HintPath>
+      </Reference>
+      <Reference Include="HarmonyLib">
+        <HintPath>$(ResonitePath)rml_libs\0Harmony.dll</HintPath>
+        <HintPath Condition="Exists('$(ResonitePath)0Harmony.dll')">$(ResonitePath)0Harmony.dll</HintPath>
+      </Reference>
+      <Reference Include="ResoniteHotReloadLib" Condition="'$(Configuration)'=='Debug'">
+        <HintPath>$(ResonitePath)rml_libs\ResoniteHotReloadLib.dll</HintPath>
+        <Private>False</Private>
+      </Reference>
+    </ItemGroup>
+	
+    <PropertyGroup>
+      <ModPath>$(ResonitePath)rml_mods</ModPath>
+      <HotReloadPath>$(ResonitePath)rml_mods\HotReloadMods</HotReloadPath>
+      <BuildPath>$(ProjectDir)Build</BuildPath>
+    </PropertyGroup>
+
+    <Target Name="PostBuildLocal" AfterTargets="PostBuildEvent">
+        <Message Text="Attempting to copy $(TargetFileName) to $(BuildPath)" Importance="high" />
+        <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(BuildPath)" ContinueOnError="true" />
+    </Target>
+	<Target Name="PostBuildHotReload" AfterTargets="PostBuildEvent" Condition="'$(ResoniteInstallOnBuild)'=='true' and '$(Configuration)'=='Debug'">
+		<Message Text="Attempting to copy $(TargetFileName) to $(HotReloadPath)" Importance="high" />
+		<Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(HotReloadPath)" ContinueOnError="true" />
+	</Target>
+    <Target Name="PostBuild" AfterTargets="AfterBuild" Condition="'$(ResoniteInstallOnBuild)'=='true'">
+        <Message Text="Attempting to copy $(TargetFileName) to $(ModPath)" Importance="high" />
+        <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="$(ModPath)" ContinueOnError="true" Retries="0" />
+    </Target>
+	
+
+</Project>

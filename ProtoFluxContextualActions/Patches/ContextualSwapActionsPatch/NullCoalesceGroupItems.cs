@@ -1,0 +1,25 @@
+using ProtoFlux.Runtimes.Execution.Nodes;
+using ProtoFluxContextualActions.Utils;
+using System;
+using System.Collections.Generic;
+
+namespace ProtoFluxContextualActions.Patches;
+
+static partial class ContextualSwapActionsPatch
+{
+	static readonly HashSet<Type> NullCoalesceGroup = [
+	  typeof(NullCoalesce<>),
+	typeof(MultiNullCoalesce<>),
+  ];
+
+	internal static IEnumerable<MenuItem> NullCoalesceGroupItems(ContextualContext context)
+	{
+		if (TypeUtils.TryGetGenericTypeDefinition(context.NodeType, out var genericType) && NullCoalesceGroup.Contains(genericType))
+		{
+			foreach (var match in NullCoalesceGroup)
+			{
+				yield return new MenuItem(match.MakeGenericType(context.NodeType.GenericTypeArguments[0]), name: match == typeof(MultiNullCoalesce<>) ? FormatMultiName(context.NodeType) : null);
+			}
+		}
+	}
+}
