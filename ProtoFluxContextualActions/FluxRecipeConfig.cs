@@ -10,11 +10,13 @@ using ProtoFlux.Runtimes.Execution;
 using ProtoFlux.Runtimes.Execution.Nodes;
 using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots;
+using ProtoFluxContextualActions.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
 
@@ -42,7 +44,10 @@ public static class FluxRecipeConfig
 
 	public static void OnRemoveItem(string ItemName)
 	{
-		FluxRecipes.RemoveAll(item => item.RecipeName == ItemName);
+		int index = FluxRecipes.FindIndex(recipe => recipe.RecipeName.Equals(ItemName, StringComparison.InvariantCultureIgnoreCase));
+		UniLog.Warning($"{index}");
+		if (index == -1) return;
+		FluxRecipes.RemoveAt(index);
 		WriteIntoConfig();
 	}
 	public static void OnRemoveItem(FluxRecipe recipe)
@@ -142,45 +147,88 @@ public static class FluxRecipeConfig
 			);
 		}
 	}
+	public static void ConstructFluxRecipe(ProtoFluxTool tool, ProtoFluxElementProxy proxy, FluxRecipe target) => ConstructFluxRecipe(tool, proxy, target, false);
 
-	public static void ConstructFluxRecipe(ProtoFluxTool tool, ProtoFluxElementProxy proxy, FluxRecipe target)
+	public static void ConstructFluxRecipe(ProtoFluxTool tool, ProtoFluxElementProxy proxy, FluxRecipe target, bool DontConnectOut = false, Slot Into = null)
 	{
 		if (target.NodeDefinitions.Any(def => def.IsTypeNull)) return;
 		tool.StartTask(async () =>
 		{
-
+			UniLog.Warning($"Creating a recipe {target.RecipeName}");
 			List<Type> spawningTypes = target.NodeDefinitions.Select(def => def.NodeType).ToList();
 
 			Dictionary<int, ProtoFluxNode> spawnedNodes = [];
 
 			ProtoFluxNode RootNode = null;
 
+			List<Type> InvalidTypes = 
+			[
+				typeof(ExternalImpulseDisplay<>),	
+				typeof(ExternalObjectInput<,>),
+				typeof(ExternalValueInput<,>),
+				typeof(ExternalObjectDisplay<,>),
+				typeof(ExternalValueDisplay<,>)
+			];
+
 			for (int i = 0; i < spawningTypes.Count; i++)
 			{
-				Type realType = ProtoFluxHelper.GetBindingForNode(spawningTypes[i]);
-				tool.SpawnNode(realType, node =>
+				Type targetType = null;
+				Type spawningType = spawningTypes[i];
+				spawningType.TryGetGenericTypeDefinition(out Type genericType);
+				int index = InvalidTypes.IndexOf(genericType);
+				if (index != -1)
 				{
-					node.EnsureElementsInDynamicLists();
-					spawnedNodes[i] = node;
-					node.EnsureVisual();
-					if (target.NodeDefinitions[i].IsRoot) RootNode = node;
-				});
+					int argLen = spawningType.GenericTypeArguments.Length;
+					Type realType = spawningType.GenericTypeArguments[argLen - 1];
+
+					switch (index)
+					{
+						case 0:
+							targetType = ProtoFluxHelper.CallDisplay;
+							break;
+						case 1:
+						case 2:
+							targetType = ProtoFluxHelper.GetInputNode(realType);
+							break;
+						case 3:
+						case 4:
+							targetType = ProtoFluxHelper.GetDisplayNode(realType);
+							break;
+					}
+					
+				}
+				targetType ??= ProtoFluxHelper.GetBindingForNode(spawningType);
+				try
+				{
+					tool.SpawnNode(targetType, node =>
+					{
+						node.EnsureElementsInDynamicLists();
+						spawnedNodes[i] = node;
+						node.EnsureVisual();
+						if (target.NodeDefinitions[i].IsRoot) RootNode = node;
+					});
+				}
+				catch
+				{
+					UniLog.Warning($"couldnt use binding for {targetType}");
+					spawnedNodes[i] = null;
+				}
 			}
 
 			await new Updates(3);
 
-			if (spawnedNodes.Values.Any(node => node == null)) return;
-
-			tool.World.BeginUndoBatch($"Create Recipe: {target.RecipeName}");
-
-			foreach (ProtoFluxNode node in spawnedNodes.Values)
+			if (spawnedNodes.Values.Any(node => node == null))
 			{
-				node.Slot.CreateSpawnUndoPoint("Spawn Node");
+				UniLog.Warning($"A node was null");
+				foreach (ProtoFluxNode node in spawnedNodes.Values)
+				{
+					if (node != null) node.Slot.Destroy();
+				}
+				return;
 			}
 
 			if (RootNode == null)
 			{
-				tool.World.EndUndoBatch();
 				foreach (ProtoFluxNode node in spawnedNodes.Values)
 				{
 					node.Slot.Destroy();
@@ -188,52 +236,75 @@ public static class FluxRecipeConfig
 				return;
 			}
 
+			tool.World.BeginUndoBatch($"Create Recipe: {target.RecipeName}");
+
+			foreach (ProtoFluxNode node in spawnedNodes.Values)
+			{
+				node.Slot.CreateSpawnUndoPoint("Spawn Node");
+				node.Slot.SetParent(Into ?? RootNode.Slot.Parent);
+			}
+
 			try
 			{
 				// Position stuff
 				Slot rootNodeSlot = RootNode.Slot;
+				Slot rootParent = rootNodeSlot.Parent;
 				float3 baseUp = rootNodeSlot.Up;
 				float3 baseRight = rootNodeSlot.Right;
 				float3 baseForward = rootNodeSlot.Forward;
+				float3 scaled = rootNodeSlot.GlobalScale;
 
 				void LocalTransformNode(ProtoFluxNode input, float3 offset)
 				{
 					Slot target = input.Slot;
 					target.CopyTransform(rootNodeSlot);
-					target.GlobalPosition += (baseUp * offset.Y) + (baseRight * offset.X) + (baseForward * offset.Z);
+					float3 offsetFactor = (baseRight * offset.X) + (baseUp * offset.Y) + (baseForward * offset.Z);
+					target.GlobalPosition += offsetFactor * scaled;
 				}
 
 				for (int i = 0; i < target.NodeDefinitions.Count; i++)
 				{
 					NodeDef thisNodeDef = target.NodeDefinitions[i];
 					List<byte3> cons = thisNodeDef.NodeConnections;
-					if (cons.Count == 0) continue;
+					//if (cons.Count == 0) continue;
 					ProtoFluxNode thisNode = spawnedNodes[i];
-					foreach (byte3 con in cons)
+					cons.ForEach((con) =>
 					{
 						if (con.x == 0xff)
 						{
+							if (DontConnectOut) return;
 							if (target.IsOutputProxy)
 							{
-								if (proxy is not ProtoFluxOutputProxy outProxy) continue;
+								if (proxy is not ProtoFluxOutputProxy outProxy) return;
 								ISyncRef NodeInput = thisNode.GetInput(con.z);
 								thisNode.TryConnectInput(NodeInput, outProxy.NodeOutput.Target, allowExplicitCast: false, undoable: true);
 							}
 							else
 							{
-								if (proxy is not ProtoFluxInputProxy inProxy) continue;
+								if (proxy is not ProtoFluxInputProxy inProxy) return;
 
 								INodeOutput NodeOutput = thisNode.GetOutput(con.z);
 								proxy.Node.Target.TryConnectInput(inProxy.NodeInput.Target, NodeOutput, allowExplicitCast: false, undoable: true);
 							}
-							continue;
+							return;
 						}
 						ProtoFluxNode from = spawnedNodes[con.x];
-						INodeOutput output = from.GetOutput(con.y);
-						ISyncRef input = thisNode.GetInput(con.z);
 
-						input.Target = output;
-					}
+						if (con.y < from.NodeOperationCount)
+						{
+							INodeOperation outputOper = from.GetOperation(con.y);
+							ISyncRef input = thisNode.GetImpulse(con.z);
+
+							input.Target = outputOper;
+						}
+						else
+						{
+							INodeOutput output = from.GetOutput(con.y - from.NodeOperationCount);
+							ISyncRef input = thisNode.GetInput(con.z - thisNode.NodeImpulseCount);
+
+							input.Target = output;
+						}
+					});
 
 					float3 offset = thisNodeDef.Offset;
 
@@ -244,11 +315,13 @@ public static class FluxRecipeConfig
 			}
 			catch
 			{
+				UniLog.Warning($"Something broke, oops");
 				tool.World.EndUndoBatch();
 				foreach (ProtoFluxNode node in spawnedNodes.Values)
 				{
 					node.Slot.Destroy();
 				}
+				throw;
 			}
 
 		});
@@ -282,20 +355,24 @@ public static class FluxRecipeConfig
 			NodeDefinitions = []
 		};
 
+		Dictionary<INodeOperation, int2> NodeImpulseOut = [];
 		Dictionary<INodeOutput, int2> NodeOutputs = [];
 		Dictionary<int2, ISyncRef> NodeInputRefs = [];
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			ProtoFluxNode node = nodes[i];
-			for (int j = 0; j < node.NodeOutputCount; j++)
+			for (int j = 0; j < node.NodeOutputCount + node.NodeOperationCount; j++)
 			{
 				int2 key = new(i, j);
-				NodeOutputs.Add(node.GetOutput(j), key);
+				if (j < node.NodeOperationCount) NodeImpulseOut.Add(node.GetOperation(j), key);
+				else NodeOutputs.Add(node.GetOutput(j - node.NodeOperationCount), key);
+
 			}
-			for (int j = 0; j < node.NodeInputCount; j++)
+			for (int j = 0; j < node.NodeInputCount + node.NodeImpulseCount; j++)
 			{
 				int2 key = new(i, j);
-				NodeInputRefs.Add(key, node.GetInput(j));
+				if (j < node.NodeImpulseCount) NodeInputRefs.Add(key, node.GetImpulse(j));
+				else NodeInputRefs.Add(key, node.GetInput(j - node.NodeImpulseCount));
 			}
 		}
 
@@ -309,28 +386,54 @@ public static class FluxRecipeConfig
 			int node = key.x;
 			int field = key.y;
 
-			INodeOutput targetOutput = (INodeOutput)val.Target;
-			if (targetOutput == null) continue;
-
-			bool found = NodeOutputs.TryGetValue(targetOutput, out int2 fromNode);
-
-			byte targetNode = 0xff;
-			byte targetNodeIndex = 0;
-
-			if (found)
+			if (val.Target is INodeOutput targetOutput)
 			{
-				targetNode = (byte)fromNode.x;
-				targetNodeIndex = (byte)fromNode.y;
-			}
+				bool found = NodeOutputs.TryGetValue(targetOutput, out int2 fromNode);
 
-			byte3 output = new(targetNode, targetNodeIndex, (byte)field);
-			bool foundList = NodeConnectionValues.TryGetValue(node, out List<byte3>? thisNodeList);
-			if (!found) {
-				NodeConnectionValues.Add(node, []);
-				thisNodeList = NodeConnectionValues[node];
+				byte targetNode = 0xff;
+				byte targetNodeIndex = 0;
+
+				if (found)
+				{
+					targetNode = (byte)fromNode.x;
+					targetNodeIndex = (byte)fromNode.y;
+				}
+
+				byte3 output = new(targetNode, targetNodeIndex, (byte)field);
+				bool foundList = NodeConnectionValues.TryGetValue(node, out List<byte3>? thisNodeList);
+				if (!found)
+				{
+					NodeConnectionValues.Add(node, []);
+					thisNodeList = NodeConnectionValues[node];
+				}
+				thisNodeList ??= [];
+				thisNodeList.Add(output);
+				NodeConnectionValues[node] = thisNodeList;
 			}
-			thisNodeList ??= [];
-			thisNodeList.Add(output);
+			if (val.Target is INodeOperation targetOperation)
+			{
+				bool found = NodeImpulseOut.TryGetValue(targetOperation, out int2 fromNode);
+
+				byte targetNode = 0xff;
+				byte targetNodeIndex = 0;
+
+				if (found)
+				{
+					targetNode = (byte)fromNode.x;
+					targetNodeIndex = (byte)fromNode.y;
+				}
+
+				byte3 output = new(targetNode, targetNodeIndex, (byte)field);
+				bool foundList = NodeConnectionValues.TryGetValue(node, out List<byte3>? thisNodeList);
+				if (!found)
+				{
+					NodeConnectionValues.Add(node, []);
+					thisNodeList = NodeConnectionValues[node];
+				}
+				thisNodeList ??= [];
+				thisNodeList.Add(output);
+				NodeConnectionValues[node] = thisNodeList;
+			}
 		}
 
 		float3 rootPos = rootNode.LocalPosition;
@@ -338,7 +441,8 @@ public static class FluxRecipeConfig
 		float3 relativePos(ProtoFluxNode node)
 		{
 			if (node == rootNodeNode) return float3.Zero;
-			return rootPos - node.Slot.LocalPosition;
+			float3 globalPos = node.Slot.GlobalPosition;
+			return rootNode.GlobalPointToLocal(in globalPos);
 		}
 
 		for (int i = 0; i < nodes.Count; i++)
@@ -383,56 +487,59 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 	public List<byte3> NodeConnections = connections;
 }
 
-[HarmonyPatch(typeof(DynamicImpulseTriggerWithObject<Slot>), "Trigger")]
-public static class RecipeSlotInterface
-{
-	public static bool Prefix(DynamicImpulseTriggerWithObject<Slot> __instance, Slot hierarchy, string tag, bool excludeDisabled, FrooxEngineContext context)
-	{
-		UniLog.Log("CAUGHT A SLOT");
-		if (tag == "FluxRecipe_AddRecipe")
-		{
-			UniLog.Log("Was recipe??");
-			ObjectInput<Slot> Value = __instance.Value;
-			Slot? instance = Value.Evaluate(context);
-			UniLog.Log("Before Return, may not skip");
-			if (instance == null) return true;
-			UniLog.Log("After Return. Skip base");
-			FluxRecipeConfig.RecipeFromSlot(instance);
-			return false;
-		}
-		UniLog.Log("Wasnt, Dont skip please");
-		return true;
-	}
-}
-
 [HarmonyPatch(typeof(DynamicImpulseTriggerWithObject<string>), "Trigger")]
 public static class RecipeStringInterface
 {
-	public static bool Prefix(DynamicImpulseTriggerWithObject<string> __instance, Slot hierarchy, string tag, bool excludeDisabled, FrooxEngineContext context)
+	public static bool Prefix(object __instance, Slot hierarchy, string tag, bool excludeDisabled, FrooxEngineContext context)
 	{
-		ObjectInput<string> Value = __instance.Value;
-		string? instance = Value.Evaluate(context);
+		bool IsStringNode = __instance is DynamicImpulseTriggerWithObject<string>;
+		if (!IsStringNode) return true;
+		DynamicImpulseTriggerWithObject<string> instance = (DynamicImpulseTriggerWithObject<string>)__instance;
+		ObjectInput<string> Value = instance.Value;
+		string variable = Value.Evaluate(context, "");
 
-		UniLog.Log("CAUGHT A STRING");
+		if (string.IsNullOrEmpty(tag)) return true;
+
+		if (tag == "FluxRecipe_AddRecipe")
+		{
+			if (hierarchy == null) return true;
+			FluxRecipeConfig.RecipeFromSlot(hierarchy);
+			return false;
+		}
+		if (tag == "FluxRecipe_BuildToSlot")
+		{
+			if (string.IsNullOrEmpty(variable)) return true;
+			if (hierarchy == null) return true;
+			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
+			{
+				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
+				space.SpaceName.Value = "FluxConstructData";
+			}
+			var data = hierarchy.GetComponent<DynamicReferenceVariable<ProtoFluxTool>>();
+			if (data == null)
+			{
+				data = hierarchy.AttachComponent<DynamicReferenceVariable<ProtoFluxTool>>();
+				data.VariableName.Value = "FluxConstructData/Tool";
+				return true;
+			}
+			if (data.Reference.Target == null) return true;
+			FluxRecipeConfig.ConstructFluxRecipe(data.Reference.Target, null, FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable), true, hierarchy);
+			return false;
+		}
 		if (tag == "FluxRecipe_RemoveRecipe")
 		{
-			UniLog.Log("Before Return, may not skip");
-			if (instance == null) return true;
-			UniLog.Log("After Return. Skip base");
-			FluxRecipeConfig.OnRemoveItem(instance);
+			if (string.IsNullOrEmpty(variable)) return true;
+			FluxRecipeConfig.OnRemoveItem(variable);
 			return false;
 		}
 		if (tag == "FluxRecipe_Reload")
 		{
 			FluxRecipeConfig.ReadFromConfig();
-			UniLog.Log("Skip base");
 			return false;
 		}
 		if (tag == "FluxRecipe_Get")
 		{
-			UniLog.Log("Before Return, may not skip");
-			if (instance == null) return true;
-			UniLog.Log("After Return. Skip base");
+			if (string.IsNullOrEmpty(variable)) return true;
 			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
 			{
 				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
@@ -444,8 +551,7 @@ public static class RecipeStringInterface
 				data = hierarchy.AttachComponent<DynamicValueVariable<string>>();
 			}
 			data.VariableName.Value = "FluxRecipeData/ThisRecipe";
-			data.Value.Value = FluxRecipeConfig.GetStringFor(instance);
-			UniLog.Log("After Return. Skip base");
+			data.Value.Value = FluxRecipeConfig.GetStringFor(variable);
 			return false;
 		}
 		if (tag == "FluxRecipe_GetAll")
@@ -462,34 +568,42 @@ public static class RecipeStringInterface
 			}
 			data.VariableName.Value = "FluxRecipeData/AllRecipes";
 			data.Value.Value = FluxRecipeConfig.StringFromData();
-			UniLog.Log("Skip base");
+			return false;
+		}
+		if (tag == "FluxRecipe_GetAllNames")
+		{
+			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
+			{
+				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
+				space.SpaceName.Value = "FluxRecipeData";
+			}
+			var data = hierarchy.GetComponent<DynamicValueVariable<string>>();
+			if (data == null)
+			{
+				data = hierarchy.AttachComponent<DynamicValueVariable<string>>();
+			}
+			data.VariableName.Value = "FluxRecipeData/AllNames";
+			data.Value.Value = string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName));
 			return false;
 		}
 		if (tag == "FluxRecipe_SetAll")
 		{
-			UniLog.Log("Before Return, may not skip");
-			if (instance == null) return true;
-			UniLog.Log("After Return. Skip base");
-			FluxRecipeConfig.LoadFromString(instance);
+			if (string.IsNullOrEmpty(variable)) return true;
+			FluxRecipeConfig.LoadFromString(variable);
 			return false;
 		}
 		if (tag == "FluxRecipe_AddRecipe")
 		{
-			UniLog.Log("Before Return, may not skip");
-			if (instance == null) return true;
-			UniLog.Log("After Return. Skip base");
-			FluxRecipeConfig.LoadSingleString(instance);
+			if (string.IsNullOrEmpty(variable)) return true;
+			FluxRecipeConfig.LoadSingleString(variable);
 			return false;
 		}
 		if (tag == "FluxRecipe_AddMultiple")
 		{
-			UniLog.Log("Before Return, may not skip");
-			if (instance == null) return true;
-			UniLog.Log("After Return. Skip base");
-			FluxRecipeConfig.LoadMultiString(instance);
+			if (string.IsNullOrEmpty(variable)) return true;
+			FluxRecipeConfig.LoadMultiString(variable);
 			return false;
 		}
-		UniLog.Log("Wasnt, Dont skip");
 		return true;
 	}
 }
