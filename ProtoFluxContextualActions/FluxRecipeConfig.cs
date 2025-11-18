@@ -490,26 +490,26 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 [HarmonyPatch(typeof(DynamicImpulseTriggerWithObject<string>), "Trigger")]
 public static class RecipeStringInterface
 {
-	public static bool Prefix(object __instance, Slot hierarchy, string tag, bool excludeDisabled, FrooxEngineContext context)
+	public static void Prefix(object __instance, Slot hierarchy, string tag, bool excludeDisabled, FrooxEngineContext context)
 	{
 		bool IsStringNode = __instance is DynamicImpulseTriggerWithObject<string>;
-		if (!IsStringNode) return true;
+		if (!IsStringNode) return;
 		DynamicImpulseTriggerWithObject<string> instance = (DynamicImpulseTriggerWithObject<string>)__instance;
 		ObjectInput<string> Value = instance.Value;
 		string variable = Value.Evaluate(context, "");
 
-		if (string.IsNullOrEmpty(tag)) return true;
+		if (string.IsNullOrEmpty(tag)) return;
 
 		if (tag == "FluxRecipe_AddRecipe")
 		{
-			if (hierarchy == null) return true;
+			if (hierarchy == null) return;
 			FluxRecipeConfig.RecipeFromSlot(hierarchy);
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_BuildToSlot")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
-			if (hierarchy == null) return true;
+			if (string.IsNullOrEmpty(variable)) return;
+			if (hierarchy == null) return;
 			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
 			{
 				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
@@ -520,26 +520,26 @@ public static class RecipeStringInterface
 			{
 				data = hierarchy.AttachComponent<DynamicReferenceVariable<ProtoFluxTool>>();
 				data.VariableName.Value = "FluxConstructData/Tool";
-				return true;
+				return;
 			}
-			if (data.Reference.Target == null) return true;
+			if (data.Reference.Target == null) return;
 			FluxRecipeConfig.ConstructFluxRecipe(data.Reference.Target, null, FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable), true, hierarchy);
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_RemoveRecipe")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
+			if (string.IsNullOrEmpty(variable)) return;
 			FluxRecipeConfig.OnRemoveItem(variable);
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_Reload")
 		{
 			FluxRecipeConfig.ReadFromConfig();
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_Get")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
+			if (string.IsNullOrEmpty(variable)) return;
 			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
 			{
 				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
@@ -552,7 +552,7 @@ public static class RecipeStringInterface
 			}
 			data.VariableName.Value = "FluxRecipeData/ThisRecipe";
 			data.Value.Value = FluxRecipeConfig.GetStringFor(variable);
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_GetAll")
 		{
@@ -568,7 +568,7 @@ public static class RecipeStringInterface
 			}
 			data.VariableName.Value = "FluxRecipeData/AllRecipes";
 			data.Value.Value = FluxRecipeConfig.StringFromData();
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_GetAllNames")
 		{
@@ -584,26 +584,26 @@ public static class RecipeStringInterface
 			}
 			data.VariableName.Value = "FluxRecipeData/AllNames";
 			data.Value.Value = string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName));
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_SetAll")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
+			if (string.IsNullOrEmpty(variable)) return;
 			FluxRecipeConfig.LoadFromString(variable);
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_AddRecipe")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
+			if (string.IsNullOrEmpty(variable)) return;
 			FluxRecipeConfig.LoadSingleString(variable);
-			return false;
+			return;
 		}
 		if (tag == "FluxRecipe_AddMultiple")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
+			if (string.IsNullOrEmpty(variable)) return;
 			FluxRecipeConfig.LoadMultiString(variable);
-			return false;
+			return;
 		}
-		return true;
+		return;
 	}
 }
