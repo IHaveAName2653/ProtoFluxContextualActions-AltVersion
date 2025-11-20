@@ -48,13 +48,9 @@ internal static class ContextualReferenceActionsPatch
 
 	static readonly Dictionary<Type, MenuItem[]> cache = [];
 
-	internal static bool Prefix(ProtoFluxTool __instance)
+	internal static bool GetReferenceActions(ProtoFluxTool __instance)
 	{
 		User user = __instance.LocalUser;
-		Chirality side = __instance.ActiveHandler.Side;
-		Chirality opposite = side.NextValue();
-		bool OppositeSecondary = user.InputInterface.GetControllerNode(opposite).ActionSecondary.Held || user.InputInterface.GetKey(Key.LeftShift);
-		if (!OppositeSecondary) return true;
 		var grabbedReference = __instance.GetGrabbedReference();
 		if (grabbedReference == null) return true;
 

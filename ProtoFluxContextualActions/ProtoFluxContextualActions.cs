@@ -31,14 +31,33 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 	public static ModConfiguration? Config;
 
+	
 	[AutoRegisterConfigKey]
-	public static readonly ModConfigurationKey<Key> KeyBind = new ModConfigurationKey<Key>("The Key", "What the key is", () => Key.BackQuote);
+	public static readonly ModConfigurationKey<bool> DesktopUsesVRBinds = new ModConfigurationKey<bool>("Desktop Uses VR Binds", "If desktop should use the same binds as VR", () => false);
 
+	[AutoRegisterConfigKey]
+	public static readonly ModConfigurationKey<Key> SecondaryKey = new ModConfigurationKey<Key>("Secondary Key", "What key to use for 'opposite' secondary", () => Key.BackQuote);
+	[AutoRegisterConfigKey]
+	public static readonly ModConfigurationKey<Key> MenuKey = new ModConfigurationKey<Key>("Menu Key", "What key to use for 'opposite' menu", () => Key.LeftShift);
 
-	public static Key TARGETKEY()
+	public static T GetConfig<T>(ModConfigurationKey<T> key, T Default)
 	{
-		if (Config != null) return Config.GetValue(KeyBind);
-		return Key.BackQuote;
+		ModConfiguration? config = Config;
+		if (config != null) return config.GetValue(key) ?? Default;
+		return Default;
+	}
+	public static bool GetDesktopShouldUseVR()
+	{
+		return GetConfig(DesktopUsesVRBinds, false);
+	}
+	public static Key GetSecondaryKey()
+	{
+
+		return GetConfig(SecondaryKey, Key.BackQuote);
+	}
+	public static Key GetMenuKey()
+	{
+		return GetConfig(MenuKey, Key.LeftShift);
 	}
 
 	private static readonly Dictionary<string, ModConfigurationKey<bool>> patchCategoryKeys = [];

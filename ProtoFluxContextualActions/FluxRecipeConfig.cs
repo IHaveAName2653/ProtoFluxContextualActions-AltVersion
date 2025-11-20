@@ -10,6 +10,7 @@ using ProtoFlux.Runtimes.Execution;
 using ProtoFlux.Runtimes.Execution.Nodes;
 using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots;
+using ProtoFluxContextualActions.Attributes;
 using ProtoFluxContextualActions.Utils;
 using System;
 using System.Collections.Generic;
@@ -487,16 +488,20 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 	public List<byte3> NodeConnections = connections;
 }
 
-[HarmonyPatch(typeof(DynamicImpulseTriggerWithObject<string>), "Trigger")]
+[HarmonyPatch()]
 public static class RecipeStringInterface
 {
-	public static void Prefix(object __instance, Slot hierarchy, string tag, bool excludeDisabled, FrooxEngineContext context)
+	public static MethodBase TargetMethod()
 	{
-		bool IsStringNode = __instance is DynamicImpulseTriggerWithObject<string>;
+		return typeof(DynamicImpulseHelper).GetMethod(nameof(DynamicImpulseHelper.TriggerDynamicImpulseWithArgument)).MakeGenericMethod(typeof(string));
+	}
+	public static void Postfix(Slot hierarchy, string tag, bool excludeDisabled, object value, FrooxEngineContext sourceContext = null)
+	{
+		bool IsStringNode = value is string;
 		if (!IsStringNode) return;
-		DynamicImpulseTriggerWithObject<string> instance = (DynamicImpulseTriggerWithObject<string>)__instance;
-		ObjectInput<string> Value = instance.Value;
-		string variable = Value.Evaluate(context, "");
+		//DynamicImpulseTriggerWithObject<string> instance = __instance;
+		//ObjectInput<string> Value = instance.Value;
+		string variable = (string)value;
 
 		if (string.IsNullOrEmpty(tag)) return;
 

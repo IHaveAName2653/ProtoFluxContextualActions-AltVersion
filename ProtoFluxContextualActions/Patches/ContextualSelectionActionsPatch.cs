@@ -64,19 +64,6 @@ namespace ProtoFluxContextualActions.Patches;
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.Update))]
 internal static class ContextualSelectionActionsPatch
 {
-	internal class ProtoFluxToolData
-	{
-		internal DateTime? lastSecondaryPress;
-		internal DateTime? lastMenuPress;
-		internal bool lastSecondary;
-		internal bool lastMenu;
-
-		internal double SecondsSinceLastSecondaryPress() => (DateTime.Now - lastSecondaryPress.GetValueOrDefault()).TotalSeconds;
-		internal double SecondsSinceLastMenuPress() => (DateTime.Now - lastMenuPress.GetValueOrDefault()).TotalSeconds;
-	}
-
-	private static readonly ConditionalWeakTable<ProtoFluxTool, ProtoFluxToolData> additionalData = [];
-
 	internal readonly struct MenuItem(Type node, Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = null)
 	{
 		internal readonly Type node = node;
@@ -92,51 +79,8 @@ internal static class ContextualSelectionActionsPatch
 		internal readonly string DisplayName => name ?? NodeMetadataHelper.GetMetadata(node).Name ?? node.GetNiceTypeName();
 	}
 
-	internal static bool Prefix(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
+	internal static bool GetSelectionActions(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
 	{
-		var data = additionalData.GetOrCreateValue(__instance);
-		Chirality side = __instance.ActiveHandler.Side;
-		Chirality opposite = side.NextValue();
-		User user = __instance.LocalUser;
-
-		//bool ContextOpen = user.IsContextMenuOpen();
-		bool ContextOpen = user.InputInterface.GetControllerNode(side).ActionMenu.Held || user.InputInterface.GetKey(Key.T);
-		bool SecondaryPressed = user.InputInterface.GetControllerNode(side).ActionSecondary.Held || user.InputInterface.GetKey(Key.R);
-		bool OppositeSecondary = user.InputInterface.GetControllerNode(opposite).ActionSecondary.Held || user.InputInterface.GetKey(Key.LeftShift);
-		bool MenuThisFrame = false;
-		bool SecondaryThisFrame = false;
-		bool MenuDoubleTap = false;
-
-		if (ContextOpen != data.lastMenu)
-		{
-			data.lastMenu = ContextOpen;
-			if (data.SecondsSinceLastMenuPress() < 0.45f && data.lastMenu) MenuDoubleTap = true;
-			if (data.lastMenu) data.lastMenuPress = DateTime.Now;
-			MenuThisFrame = true;
-		}
-		if (OppositeSecondary != data.lastSecondary)
-		{
-			data.lastSecondary = OppositeSecondary;
-			if (data.lastMenu) data.lastSecondaryPress = DateTime.Now;
-			SecondaryThisFrame = true;
-		}
-
-		if (data.SecondsSinceLastMenuPress() > 0.5f && data.lastMenu && !data.lastSecondary)
-		{
-			data.lastMenuPress = new DateTime(9000, 1, 1);
-			//user.CloseContextMenu(__instance);
-		}
-		else if (data.lastMenu && MenuThisFrame && data.lastSecondary)
-		{
-			//user.CloseContextMenu(__instance);
-		}
-		else if (user.InputInterface.GetKeyDown(ProtoFluxContextualActions.TARGETKEY()) && !OppositeSecondary) { }
-		else
-		{
-			return true;
-		}
-
-
 		var elementProxy = ____currentProxy.Target;
 		var items = MenuItems(__instance).Take(12).ToList();
 		// todo: pages / menu

@@ -15,7 +15,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace ProtoFluxContextualActions.Patches;
-
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.Update))]
 [HarmonyPatchCategory("ProtoFluxTool Contextual Swap Actions"), TweakCategory("Adds 'Contextual Swapping Actions' to the ProtoFlux Tool. Double pressing secondary pointing at a node with protoflux tool will be open a context menu of actions to swap the node for another node.", defaultValue: true)] // unstable, disable by default
 internal static partial class ContextualSwapActionsPatch
@@ -56,70 +55,15 @@ internal static partial class ContextualSwapActionsPatch
 	// additional data we store for the protoflux tool
 	internal class ProtoFluxToolData
 	{
-		internal DateTime? lastSecondaryPress;
-		internal DateTime? lastMenuPress;
-		internal bool lastSecondary;
-		internal bool lastMenu;
 		internal ProtoFluxNode? lastSecondaryPressNode;
 		internal Type? lastSpawnNodeType;
-
-		internal double SecondsSinceLastSecondaryPress() => (DateTime.Now - lastSecondaryPress.GetValueOrDefault()).TotalSeconds;
-		internal double SecondsSinceLastMenuPress() => (DateTime.Now - lastMenuPress.GetValueOrDefault()).TotalSeconds;
 	}
-
-	// TODO: configurable
-	const double DoublePressTime = 0.45;
 
 	private static readonly ConditionalWeakTable<ProtoFluxTool, ProtoFluxToolData> additionalData = [];
 
-	internal static bool Prefix(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
+	internal static bool GetSwapActions(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
 	{
 		var data = additionalData.GetOrCreateValue(__instance);
-		Chirality side = __instance.ActiveHandler.Side;
-		Chirality opposite = side.NextValue();
-		User user = __instance.LocalUser;
-
-		bool ContextOpen = user.InputInterface.GetControllerNode(side).ActionMenu.Held || user.InputInterface.GetKey(Key.T);
-		bool SecondaryPressed = user.InputInterface.GetControllerNode(side).ActionSecondary.Held || user.InputInterface.GetKey(Key.R);
-		bool OppositeSecondary = user.InputInterface.GetControllerNode(opposite).ActionSecondary.Held || user.InputInterface.GetKey(Key.LeftShift);
-		bool MenuThisFrame = false;
-		bool SecondaryThisFrame = false;
-		bool MenuDoubleTap = false;
-
-		if (ContextOpen != data.lastMenu)
-		{
-			data.lastMenu = ContextOpen;
-			if (data.SecondsSinceLastMenuPress() < 0.4f && data.lastMenu) MenuDoubleTap = true;
-			if (data.lastMenu) data.lastMenuPress = DateTime.Now;
-			MenuThisFrame = true;
-		}
-		if (OppositeSecondary != data.lastSecondary)
-		{
-			data.lastSecondary = OppositeSecondary;
-			if (data.lastMenu) data.lastSecondaryPress = DateTime.Now;
-			SecondaryThisFrame = true;
-		}
-
-
-		if (MenuDoubleTap && data.lastMenu)
-		{
-			//user.CloseContextMenu(__instance);
-		}
-		else if (data.SecondsSinceLastMenuPress() > 0.5f && data.lastMenu && data.lastSecondary)
-		{
-			data.lastMenuPress = new DateTime(9000, 1, 1);
-			//user.CloseContextMenu(__instance);
-		}
-		else if (user.InputInterface.GetKeyDown(ProtoFluxContextualActions.TARGETKEY()) && OppositeSecondary) { }
-		else if (data.SecondsSinceLastSecondaryPress() > 0.5f && SecondaryPressed)
-		{
-			data.lastSecondaryPress = new DateTime(9000, 1, 1);
-		}
-		else
-		{
-			return true;
-		}
-
 
 		var elementProxy = ____currentProxy.Target;
 
@@ -131,22 +75,22 @@ internal static partial class ContextualSwapActionsPatch
 				var hitNode = hitSlot.GetComponentInParents<ProtoFluxNode>();
 				if (hitNode != null)
 				{
-					if (data.lastSecondaryPressNode != null && !data.lastSecondaryPressNode.IsRemoved && data.lastSecondaryPressNode == hitNode)
-					{
+					/*if (data.lastSecondaryPressNode != null && !data.lastSecondaryPressNode.IsRemoved && data.lastSecondaryPressNode == hitNode)
+					{*/
 						CreateMenu(__instance, hitNode);
 						data.lastSecondaryPressNode = null;
 						data.lastSecondaryPressNode = null;
 						data.lastSpawnNodeType = null;
 						// skip rest
 						return false;
-					}
+					/*}
 					else
 					{
 						data.lastSpawnNodeType = __instance.SpawnNodeType;
 						data.lastSecondaryPressNode = hitNode;
 						// skip null
 						return true;
-					}
+					}*/
 				}
 			}
 

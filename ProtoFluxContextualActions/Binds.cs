@@ -21,30 +21,27 @@ namespace ProtoFluxContextualActions;
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.Update))]
 internal class Binds
 {
-	[AutoRegisterConfigKey]
-	public static readonly ModConfigurationKey<bool> DesktopUsesVRBinds = new ModConfigurationKey<bool>("Desktop Uses VR Binds", "If desktop should use the same binds as VR", () => false);
-
-	[AutoRegisterConfigKey]
-	public static readonly ModConfigurationKey<Key> SecondaryKey = new ModConfigurationKey<Key>("Secondary Key", "What key to use for 'opposite' secondary", () => Key.BackQuote);
-	[AutoRegisterConfigKey]
-	public static readonly ModConfigurationKey<Key> MenuKey = new ModConfigurationKey<Key>("Menu Key", "What key to use for 'opposite' menu", () => Key.LeftShift);
-
 	internal static Target GetBind(ProtoFluxToolData data)
 	{
 		// Desktop specific binds
 		if (ShouldUseDesktopBinds(data))
 		{
-			if (data.GrabbedReference != null && data.Menu.Opposite.pressedThisUpdate) return Target.Reference;
+			if (data.GrabbedReference != null && data.Secondary.Opposite.pressedThisUpdate) return Target.Reference;
 			if (data.Secondary.Opposite.pressedThisUpdate && data.Menu.Opposite.currentlyPressed) return Target.Swap;
-			if (data.Menu.Opposite.pressedThisUpdate && !data.Menu.Opposite.currentlyPressed) return Target.Selection;
+			if (data.Secondary.Opposite.pressedThisUpdate && !data.Menu.Opposite.currentlyPressed) return Target.Selection;
 		}
 		else
 		{
 			// VR specific binds (or desktop sometimes)
 			if (data.Secondary.Opposite.currentlyPressed && data.Menu.Primary.pressedThisUpdate) return Target.Selection;
-			if (data.Menu.Primary.IsHeld && data.Secondary.Opposite.currentlyPressed) return Target.Swap;
-			if (data.Menu.Primary.IsHeld && !data.Secondary.Opposite.currentlyPressed) return Target.Selection;
-			if (data.Secondary.Opposite.IsHeld && data.Secondary.Primary.pressedThisUpdate) return Target.Swap;
+			//if (data.Menu.Primary.IsHeld && data.Secondary.Opposite.currentlyPressed) return Target.Swap;
+			//if (data.Menu.Primary.IsHeld && !data.Secondary.Opposite.currentlyPressed) return Target.Selection;
+			if (data.Secondary.Opposite.IsHeld && data.Menu.Primary.pressedThisUpdate) return Target.Swap;
+
+			if (data.Secondary.Opposite.IsHeld && data.Trigger.Opposite.pressedThisUpdate) return Target.Reference;
+
+			if (data.Secondary.Opposite.currentlyPressed && data.Trigger.Opposite.pressedThisUpdate) return Target.Swap;
+
 		}
 
 		return Target.None;
@@ -59,15 +56,19 @@ internal class Binds
 
 		Target targetFunction = GetBind(data);
 
+		if (targetFunction == Target.None) return true;
+
+		if (__instance.LocalUser.IsContextMenuOpen()) __instance.LocalUser.CloseContextMenu(__instance);
+
 		// Call the functions
 		return targetFunction switch
 		{
 			// Select with dragged wire
-			Target.Selection => ContextualSelectionActionsPatch.Prefix(__instance, ____currentProxy),
+			Target.Selection => ContextualSelectionActionsPatch.GetSelectionActions(__instance, ____currentProxy),
 			// Swap highlighted node
-			Target.Swap => ContextualSwapActionsPatch.Prefix(__instance, ____currentProxy),
+			Target.Swap => ContextualSwapActionsPatch.GetSwapActions(__instance, ____currentProxy),
 			// nodes from held reference type
-			Target.Reference => ContextualReferenceActionsPatch.Prefix(__instance),
+			Target.Reference => ContextualReferenceActionsPatch.GetReferenceActions(__instance),
 			// No function
 			_ => true,
 		};
@@ -95,6 +96,9 @@ internal class Binds
 		internal void Update(bool state)
 		{
 			if (TimeSincePressed < 0.5f && state) isDoublePress = true;
+
+			pressedThisUpdate = false;
+			releasedThisUpdate = false;
 
 			bool changed = currentlyPressed != state;
 			if (changed)
@@ -171,31 +175,32 @@ internal class Binds
 			Trigger.Update(VRTriggerLeft, VRTriggerRight, DesktopTriggerLeft, DesktopTriggerRight);
 			Grip.Update(VRGripLeft, VRGripRight, DesktopGripLeft, DesktopGripRight);
 		}
+
+		internal void ResetHolds()
+		{
+
+		}
 	}
 
 	private static readonly ConditionalWeakTable<ProtoFluxTool, ProtoFluxToolData> additionalData = [];
-	public static T GetConfig<T>(ModConfigurationKey<T> key, T Default)
-	{
-		ModConfiguration? config = ProtoFluxContextualActions.Config;
-		if (config != null) return config.GetValue(key) ?? Default;
-		return Default;
-	}
+	
 	public static bool ShouldUseDesktopBinds(ProtoFluxToolData data)
 	{
-		return !GetDesktopShouldUseVR() && data.UserInVR;
+		return !GetDesktopShouldUseVR() && !data.UserInVR;
 	}
+
 	public static bool GetDesktopShouldUseVR()
 	{
-		return GetConfig(DesktopUsesVRBinds, false);
+		return ProtoFluxContextualActions.GetDesktopShouldUseVR();
 	}
 	public static Key GetSecondaryKey()
 	{
 
-		return GetConfig(SecondaryKey, Key.BackQuote);
+		return ProtoFluxContextualActions.GetSecondaryKey();
 	}
 	public static Key GetMenuKey()
 	{
-		return GetConfig(MenuKey, Key.LeftShift);
+		return ProtoFluxContextualActions.GetMenuKey();
 	}
 
 }
