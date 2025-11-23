@@ -5,6 +5,7 @@ using FrooxEngine.Undo;
 using HarmonyLib;
 using ProtoFlux.Core;
 using ProtoFlux.Runtimes.Execution;
+using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFluxContextualActions.Attributes;
 using ProtoFluxContextualActions.Extensions;
 using ProtoFluxContextualActions.Utils.ProtoFlux;
@@ -67,8 +68,8 @@ internal static partial class ContextualSwapActionsPatch
 
 		var elementProxy = ____currentProxy.Target;
 
-		if (elementProxy is null)
-		{
+		//if (elementProxy is null)
+		//{
 			var hit = GetHit(__instance);
 			if (hit is { Collider.Slot: var hitSlot })
 			{
@@ -92,7 +93,7 @@ internal static partial class ContextualSwapActionsPatch
 						return true;
 					}*/
 				}
-			}
+			//}
 
 			data.lastSecondaryPressNode = null;
 			data.lastSpawnNodeType = null;
@@ -112,7 +113,7 @@ internal static partial class ContextualSwapActionsPatch
 			if (items.Length > 0)
 			{
 				// restore previous spawn node
-				__instance.SpawnNodeType.Value = additionalData.GetOrCreateValue(__instance).lastSpawnNodeType;
+				//__instance.SpawnNodeType.Value = additionalData.GetOrCreateValue(__instance).lastSpawnNodeType;
 
 				var menu = await __instance.LocalUser.OpenContextMenu(__instance, __instance.Slot);
 				// TODO: pages / custom menus
@@ -158,7 +159,7 @@ internal static partial class ContextualSwapActionsPatch
 			var results = SwapHelper.TransferElements(oldNode, newNodeInstance, query, executionRuntime, tryByIndex, overload: true);
 			var nodeMap = hitNode.Group.Nodes.ToDictionary(a => a.NodeInstance, a => a);
 			var swappedNodes = results.Where(r => r.overload?.OverloadedAnyNodes == true).SelectMany(r => r.overload?.SwappedNodes).Append(new(oldNode, newNodeInstance)).ToList();
-
+			
 			foreach (var (fromNode, intoNode) in swappedNodes)
 			{
 				var intoType = intoNode.GetType();
@@ -202,6 +203,23 @@ internal static partial class ContextualSwapActionsPatch
 			{
 				var node = nodeMap[intoNode];
 				node.CreateSpawnUndoPoint(node.HasActiveVisual() ? ensureVisualDelegate : null);
+			}
+
+			foreach (var component in newNode.Slot.Components)
+			{
+				if (component.GetType() == typeof(DynamicImpulseReceiver.Proxy))
+				{
+					DynamicImpulseReceiver.Proxy proxy = (DynamicImpulseReceiver.Proxy)component;
+					if (proxy.Node.Target == null) proxy.Destroy();
+				}
+				var field = Traverse.Create(component).Field("Node").GetValue<SyncRef<IProtoFluxNode>>();
+				if (field != null)
+				{
+					if (field.IsTargetRemoved) component.Destroy();
+					if (field.Target.IsRemoved) component.Destroy();
+					if (field.RawTarget.IsRemoved) component.Destroy();
+					if (field.State != ReferenceState.Available) component.Destroy();
+				}
 			}
 		}
 
@@ -282,7 +300,6 @@ internal static partial class ContextualSwapActionsPatch
 			.. SampleSpatialVariableGroupItems(context),
 			.. KeyStateGroupItems(context),
 			.. ObjectComparisonBinaryOperatorGroupItems(context),
-
 			.. LerpGroupItems(context),
 			.. DynamicImpulseGroupItems(context),
 		];
