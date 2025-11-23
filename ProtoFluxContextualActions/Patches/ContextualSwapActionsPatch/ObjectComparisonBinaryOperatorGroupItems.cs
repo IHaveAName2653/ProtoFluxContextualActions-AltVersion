@@ -19,6 +19,8 @@ static partial class ContextualSwapActionsPatch
 		typeof(ObjectLessOrEqual<>),
 		typeof(ObjectGreaterThan<>),
 		typeof(ObjectGreaterOrEqual<>),
+		typeof(IsNull<>),
+		typeof(NotNull<>),
 	];
 
 	internal static IEnumerable<MenuItem> ObjectComparisonBinaryOperatorGroupItems(ContextualContext context)

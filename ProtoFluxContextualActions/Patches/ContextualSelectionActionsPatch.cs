@@ -82,7 +82,7 @@ internal static class ContextualSelectionActionsPatch
 	internal static bool GetSelectionActions(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
 	{
 		var elementProxy = ____currentProxy.Target;
-		var items = MenuItems(__instance).Take(12).ToList();
+		var items = MenuItems(__instance).Take(24).ToList();
 		// todo: pages / menu
 
 
@@ -392,7 +392,7 @@ internal static class ContextualSelectionActionsPatch
 						// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
 						// yield return new MenuItem(typeof(ValueGreaterThan<>).MakeGenericType(outputType));
 						// yield return new MenuItem(typeof(ValueGreaterOrEqual<>).MakeGenericType(outputType));
-						yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
+						//yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
 						// yield return new MenuItem(typeof(ValueNotEquals<>).MakeGenericType(outputType));
 					}
 
@@ -450,15 +450,21 @@ internal static class ContextualSelectionActionsPatch
 			}
 		}
 
-		if (coder.Property<bool>("SupportsComparison").Value)
-		{
-			// yield return new MenuItem(typeof(ValueLessThan<>).MakeGenericType(outputType));
-			// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
-			// yield return new MenuItem(typeof(ValueGreaterThan<>).MakeGenericType(outputType));
-			// yield return new MenuItem(typeof(ValueGreaterOrEqual<>).MakeGenericType(outputType));
-			yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
-			// yield return new MenuItem(typeof(ValueNotEquals<>).MakeGenericType(outputType));
-		}
+		//if (coder.Property<bool>("SupportsComparison").Value)
+		//{
+		var equalsNode = GetNodeForType(outputType, [
+			new NodeTypeRecord(typeof(ValueEquals<>), null, null),
+			new NodeTypeRecord(typeof(ObjectEquals<>), null, null),
+		]);
+		yield return new MenuItem(equalsNode);
+
+		if (!outputType.IsValueType) yield return new MenuItem(typeof(IsNull<>).MakeGenericType(outputType));
+		// yield return new MenuItem(typeof(ValueLessThan<>).MakeGenericType(outputType));
+		// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
+		// yield return new MenuItem(typeof(ValueGreaterThan<>).MakeGenericType(outputType));
+		// yield return new MenuItem(typeof(ValueGreaterOrEqual<>).MakeGenericType(outputType));
+		// yield return new MenuItem(typeof(ValueNotEquals<>).MakeGenericType(outputType));
+		//}
 
 		if (outputType == typeof(Slot))
 		{
@@ -470,6 +476,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(FindChildByTag)); // use tag here because it has less inputs which fits better when going to swap.
 			yield return new MenuItem(typeof(GetSlotName));
 			yield return new MenuItem(typeof(GetObjectRoot));
+			yield return new MenuItem(typeof(GetActiveUser));
 
 			yield return new MenuItem(typeof(DestroySlot));
 
@@ -587,7 +594,7 @@ internal static class ContextualSelectionActionsPatch
 
 			yield return new MenuItem(typeof(FireOnTrue));
 			yield return new MenuItem(typeof(FireOnFalse));
-			yield return new MenuItem(typeof(FireOnValueChange<bool>));
+			//yield return new MenuItem(typeof(FireOnValueChange<bool>));
 		}
 
 		else if (outputType == typeof(bool2))
@@ -638,6 +645,13 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(ValueInc<int>));
 			yield return new MenuItem(typeof(ValueDec<int>));
 		}
+
+		var changeVariableNode = GetNodeForType(outputType, [
+			new NodeTypeRecord(typeof(FireOnValueChange<>), null, null),
+			new NodeTypeRecord(typeof(FireOnObjectValueChange<>), null, null),
+			new NodeTypeRecord(typeof(FireOnRefChange<>), null, null),
+		]);
+		yield return new MenuItem(changeVariableNode);
 
 		if (outputType == typeof(UserRef))
 		{
@@ -710,7 +724,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(NextValue<>).MakeGenericType(outputType), name: typeof(NextValue<>).GetNiceName());
 			yield return new MenuItem(typeof(ShiftEnum<>).MakeGenericType(outputType), name: typeof(ShiftEnum<>).GetNiceName());
 			yield return new MenuItem(typeof(TryEnumToInt<>).MakeGenericType(outputType), name: "TryEnumToInt<T>");
-			yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
+			//yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
 
 			var enumType = outputType.GetEnumUnderlyingType();
 			if (NodeUtils.TryGetEnumToNumberNode(enumType, out var toNumberType))
@@ -849,15 +863,7 @@ internal static class ContextualSelectionActionsPatch
 				}
 			);
 		}
-		if (outputType.IsValueType)
-		{
-			yield return new MenuItem(typeof(FireOnValueChange<>));
-		}
-		else
-		{
-			yield return new MenuItem(typeof(FireOnObjectValueChange<>));
-			yield return new MenuItem(typeof(IsNull<>));
-		}
+		
 	}
 	#endregion
 
