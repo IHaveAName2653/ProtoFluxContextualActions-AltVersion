@@ -439,6 +439,8 @@ internal static class ContextualSelectionActionsPatch
 	internal static IEnumerable<MenuItem> OutputMenuItems(ProtoFluxOutputProxy outputProxy)
 	{
 		var nodeType = outputProxy.Node.Target.NodeType;
+		var outputType = outputProxy.OutputType.Value;
+		var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(outputType));
 
 		if (TryGetUnpackNode(outputProxy.World, outputProxy.OutputType, out var unpackNodeTypes))
 		{
@@ -447,8 +449,16 @@ internal static class ContextualSelectionActionsPatch
 				yield return new MenuItem(unpackNodeType);
 			}
 		}
-		var outputType = outputProxy.OutputType.Value;
 
+		if (coder.Property<bool>("SupportsComparison").Value)
+		{
+			// yield return new MenuItem(typeof(ValueLessThan<>).MakeGenericType(outputType));
+			// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
+			// yield return new MenuItem(typeof(ValueGreaterThan<>).MakeGenericType(outputType));
+			// yield return new MenuItem(typeof(ValueGreaterOrEqual<>).MakeGenericType(outputType));
+			yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
+			// yield return new MenuItem(typeof(ValueNotEquals<>).MakeGenericType(outputType));
+		}
 
 		if (outputType == typeof(Slot))
 		{
@@ -459,6 +469,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(ChildrenCount));
 			yield return new MenuItem(typeof(FindChildByTag)); // use tag here because it has less inputs which fits better when going to swap.
 			yield return new MenuItem(typeof(GetSlotName));
+			yield return new MenuItem(typeof(GetObjectRoot));
 
 			yield return new MenuItem(typeof(DestroySlot));
 
@@ -837,6 +848,15 @@ internal static class ContextualSelectionActionsPatch
 					return false;
 				}
 			);
+		}
+		if (outputType.IsValueType)
+		{
+			yield return new MenuItem(typeof(FireOnValueChange<>));
+		}
+		else
+		{
+			yield return new MenuItem(typeof(FireOnObjectValueChange<>));
+			yield return new MenuItem(typeof(IsNull<>));
 		}
 	}
 	#endregion

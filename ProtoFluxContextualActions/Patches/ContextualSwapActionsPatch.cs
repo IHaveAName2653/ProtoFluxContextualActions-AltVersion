@@ -285,6 +285,7 @@ internal static partial class ContextualSwapActionsPatch
 
 			.. LerpGroupItems(context),
 			.. DynamicImpulseGroupItems(context),
+			.. NullGroupItems(context),
 		];
 
 		foreach (var menuItem in menuItems)

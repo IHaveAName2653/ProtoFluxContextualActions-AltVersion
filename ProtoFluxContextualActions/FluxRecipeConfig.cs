@@ -487,21 +487,24 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 
 	public List<byte3> NodeConnections = connections;
 }
-
-[HarmonyPatch()]
+/*
+//[HarmonyPatch()]
 public static class RecipeStringInterface
 {
-	public static MethodBase TargetMethod()
+	//public static MethodBase TargetMethod()
+	//{
+		//return typeof(DynamicImpulseHelper).GetMethod(nameof(DynamicImpulseHelper.TriggerDynamicImpulseWithArgument)).MakeGenericMethod(typeof(string));
+	//}
+	public static void Prefix(Slot hierarchy, string tag, bool excludeDisabled, object value, FrooxEngineContext sourceContext = null)
 	{
-		return typeof(DynamicImpulseHelper).GetMethod(nameof(DynamicImpulseHelper.TriggerDynamicImpulseWithArgument)).MakeGenericMethod(typeof(string));
-	}
-	public static void Postfix(Slot hierarchy, string tag, bool excludeDisabled, object value, FrooxEngineContext sourceContext = null)
-	{
+		UniLog.Warning("WE HAVE TRIGGERED A DYN IMPULSE WITH DATA??");
 		bool IsStringNode = value is string;
 		if (!IsStringNode) return;
+		UniLog.Warning("WE HAVE TRIGGERED A DYN IMPULSE OF TYPE STRING??");
 		//DynamicImpulseTriggerWithObject<string> instance = __instance;
 		//ObjectInput<string> Value = instance.Value;
 		string variable = (string)value;
+		
 
 		if (string.IsNullOrEmpty(tag)) return;
 
@@ -611,4 +614,4 @@ public static class RecipeStringInterface
 		}
 		return;
 	}
-}
+}*/
