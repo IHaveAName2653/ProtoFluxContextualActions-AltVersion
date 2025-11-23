@@ -458,6 +458,19 @@ internal static class ContextualSelectionActionsPatch
 		]);
 		yield return new MenuItem(equalsNode);
 
+		if (outputType == typeof(bool))
+		{
+			yield return new MenuItem(typeof(FireOnTrue));
+			yield return new MenuItem(typeof(FireOnFalse));
+			//yield return new MenuItem(typeof(FireOnValueChange<bool>));
+		}
+		var changeVariableNode = GetNodeForType(outputType, [
+			new NodeTypeRecord(typeof(FireOnValueChange<>), null, null),
+			new NodeTypeRecord(typeof(FireOnObjectValueChange<>), null, null),
+			new NodeTypeRecord(typeof(FireOnRefChange<>), null, null),
+		]);
+		yield return new MenuItem(changeVariableNode);
+
 		if (!outputType.IsValueType) yield return new MenuItem(typeof(IsNull<>).MakeGenericType(outputType));
 		// yield return new MenuItem(typeof(ValueLessThan<>).MakeGenericType(outputType));
 		// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
@@ -591,10 +604,6 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(AND_Bool));
 			yield return new MenuItem(typeof(OR_Bool));
 			yield return new MenuItem(typeof(NOT_Bool));
-
-			yield return new MenuItem(typeof(FireOnTrue));
-			yield return new MenuItem(typeof(FireOnFalse));
-			//yield return new MenuItem(typeof(FireOnValueChange<bool>));
 		}
 
 		else if (outputType == typeof(bool2))
@@ -645,13 +654,6 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(ValueInc<int>));
 			yield return new MenuItem(typeof(ValueDec<int>));
 		}
-
-		var changeVariableNode = GetNodeForType(outputType, [
-			new NodeTypeRecord(typeof(FireOnValueChange<>), null, null),
-			new NodeTypeRecord(typeof(FireOnObjectValueChange<>), null, null),
-			new NodeTypeRecord(typeof(FireOnRefChange<>), null, null),
-		]);
-		yield return new MenuItem(changeVariableNode);
 
 		if (outputType == typeof(UserRef))
 		{
