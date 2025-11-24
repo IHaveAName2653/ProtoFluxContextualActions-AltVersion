@@ -69,6 +69,7 @@ public class ProtoFluxToolData
 	public SidedBinds Menu;
 	public SidedBinds Primary;
 	public SidedBinds Grip;
+	public SidedBinds Touch;
 
 	public bool UserInVR;
 	public InputInterface? UserInput;
@@ -88,6 +89,8 @@ public class ProtoFluxToolData
 		InputInterface input = user.InputInterface;
 		IStandardController PrimaryController = input.GetControllerNode(side);
 		IStandardController OppositeController = input.GetControllerNode(opposite);
+		TouchController PrimaryTouchController = (TouchController)PrimaryController;
+		TouchController OppositeTouchController = (TouchController)OppositeController;
 
 		UserInput = input;
 
@@ -100,6 +103,9 @@ public class ProtoFluxToolData
 		bool VRTriggerRight = PrimaryController.ActionPrimary.Held;
 		bool VRGripLeft = OppositeController.ActionGrab.Held;
 		bool VRGripRight = PrimaryController.ActionGrab.Held;
+
+		bool VRTouchLeft = OppositeTouchController.ThumbRestTouch.Held;
+		bool VRTouchRight = PrimaryTouchController.ThumbRestTouch.Held;
 
 		// DESKTOP BINDS
 		bool DesktopMenuLeft = input.GetKey(GetMenuKey());
@@ -115,6 +121,7 @@ public class ProtoFluxToolData
 		Menu.Update(VRMenuLeft, VRMenuRight, DesktopMenuLeft, DesktopMenuRight);
 		Primary.Update(VRTriggerLeft, VRTriggerRight, DesktopTriggerLeft, DesktopTriggerRight);
 		Grip.Update(VRGripLeft, VRGripRight, DesktopGripLeft, DesktopGripRight);
+		Touch.Update(VRTouchLeft, VRTouchRight, false, false);
 	}
 
 	public void ResetHolds()
@@ -159,7 +166,8 @@ public enum ControlBind
 	Secondary,
 	Menu,
 	Primary,
-	Grip
+	Grip,
+	Touch
 }
 public struct Condition
 {

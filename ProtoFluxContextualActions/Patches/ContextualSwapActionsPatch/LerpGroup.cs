@@ -40,7 +40,7 @@ static partial class ContextualSwapActionsPatch
 			{
 				yield return new(typeof(ValueLerp<>).MakeGenericType(opType));
 				yield return new(typeof(ValueLerpUnclamped<>).MakeGenericType(opType));
-				yield return new(typeof(ValueMultiLerp<>).MakeGenericType(opType));
+				yield return new(typeof(ValueMultiLerp<>).MakeGenericType(opType), name: "MultiLerp");
 			}
 			if (coder.Property<bool>("SupportsInverseLerp").Value)
 			{

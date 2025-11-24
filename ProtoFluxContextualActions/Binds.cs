@@ -41,6 +41,7 @@ public class Binds
 					ControlBind.Menu => data.Menu,
 					ControlBind.Primary => data.Primary,
 					ControlBind.Grip => data.Grip,
+					ControlBind.Touch => data.Touch,
 					_ => data.Secondary
 				};
 				BindData controlBind = control.IsPrimary switch
