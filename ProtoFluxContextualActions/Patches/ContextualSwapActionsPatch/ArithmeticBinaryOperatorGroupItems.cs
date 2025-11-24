@@ -54,23 +54,23 @@ static partial class ContextualSwapActionsPatch
 
 				if (coder.Property<bool>("SupportsAddSub").Value)
 				{
-					yield return new MenuItem(typeof(ValueAdd<>).MakeGenericType(opType));
-					yield return new MenuItem(typeof(ValueSub<>).MakeGenericType(opType));
+					yield return new MenuItem(typeof(ValueAdd<>).MakeGenericType(opType), connectionTransferType: ConnectionTransferType.ByIndexLossy);
+					yield return new MenuItem(typeof(ValueSub<>).MakeGenericType(opType), connectionTransferType: ConnectionTransferType.ByIndexLossy);
 				}
 
 				if (coder.Property<bool>("SupportsMul").Value)
 				{
-					yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(opType));
+					yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(opType), connectionTransferType: ConnectionTransferType.ByIndexLossy);
 				}
 
 				if (coder.Property<bool>("SupportsDiv").Value)
 				{
-					yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(opType));
+					yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(opType), connectionTransferType: ConnectionTransferType.ByIndexLossy);
 				}
 
 				if (coder.Property<bool>("SupportsMod").Value)
 				{
-					yield return new MenuItem(typeof(ValueMod<>).MakeGenericType(opType));
+					yield return new MenuItem(typeof(ValueMod<>).MakeGenericType(opType), connectionTransferType: ConnectionTransferType.ByIndexLossy);
 				}
 
 				if (coder.Property<bool>("SupportsMul").Value)

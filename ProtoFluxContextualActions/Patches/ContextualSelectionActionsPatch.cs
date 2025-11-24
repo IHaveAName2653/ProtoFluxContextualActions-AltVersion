@@ -821,7 +821,6 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(FormatString), group: "String Operations");
 
 			yield return new MenuItem(typeof(ConcatenateString), group: "String Operations");
-			yield return new MenuItem(typeof(ConcatenateMultiString), group: "String Operations");
 		}
 
 		else if (outputType == typeof(DateTime))
