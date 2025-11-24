@@ -13,7 +13,7 @@ static partial class ContextualSwapActionsPatch
 		typeof(GetDown),
 		typeof(GetLeft),
 		typeof(GetRight)
-		];
+	];
 
 	private static IEnumerable<MenuItem> GetDirectionGroupItems(ContextualContext context)
 	{

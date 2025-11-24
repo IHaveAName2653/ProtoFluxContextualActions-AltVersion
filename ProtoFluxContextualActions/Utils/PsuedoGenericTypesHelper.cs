@@ -61,4 +61,9 @@ static class PsuedoGenericTypesHelper
 		.. psuedoGenerics.UnpackColumns,
 		// .. psuedoGenerics.ComposeTRS,
     ];
+
+	public static PsuedoGenerics SqrtGroup(this PsuedoGenericTypes psuedoGenerics) =>
+	[
+		.. psuedoGenerics.Sqrt,
+	];
 }

@@ -8,6 +8,7 @@ using System.Reflection;
 namespace ProtoFluxContextualActions;
 
 using System.Collections.Generic;
+using System.IO;
 using FrooxEngine;
 using global::ProtoFluxContextualActions.Utils;
 using Renderite.Shared;
@@ -26,6 +27,8 @@ public class ProtoFluxContextualActions : ResoniteMod
 	public override string Link => ModAssembly.GetCustomAttributes<AssemblyMetadataAttribute>().First(meta => meta.Key == "RepositoryUrl").Value!;
 
 	internal static string HarmonyId => $"dev.bree.{ModAssembly.GetName()}";
+
+	static readonly string configRoot = Path.Combine(Directory.GetCurrentDirectory(), "mod_fluxConfig");
 
 	private static readonly Harmony harmony = new(HarmonyId);
 
@@ -95,6 +98,14 @@ public class ProtoFluxContextualActions : ResoniteMod
 		}
 	}
 
+	public static void EnsureConfigPath()
+	{
+		if (!Path.Exists(configRoot))
+		{
+			Directory.CreateDirectory(configRoot);
+		}
+	}
+
 
 	public override void OnEngineInit()
 	{
@@ -108,7 +119,10 @@ public class ProtoFluxContextualActions : ResoniteMod
 		PatchCategories();
 		harmony.PatchAllUncategorized(ModAssembly);
 
+		EnsureConfigPath();
+
 		FluxRecipeConfig.OnInit();
+		BindFile.OnInit();
 	}
 
 #if DEBUG
@@ -122,7 +136,11 @@ public class ProtoFluxContextualActions : ResoniteMod
 	{
 		PatchCategories();
 		harmony.PatchAllUncategorized(ModAssembly);
+
+		EnsureConfigPath();
+
 		FluxRecipeConfig.OnInit();
+		BindFile.OnInit();
 	}
 #endif
 

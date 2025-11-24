@@ -1,10 +1,12 @@
 using Elements.Core;
 using FrooxEngine.ProtoFlux;
 using HarmonyLib;
+using ProtoFlux.Core;
 using ProtoFlux.Runtimes.Execution.Nodes.Math;
 using ProtoFlux.Runtimes.Execution.Nodes.Operators;
 using ProtoFluxContextualActions.Extensions;
 using ProtoFluxContextualActions.Utils;
+using Renderite.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,21 +26,30 @@ static partial class ContextualSwapActionsPatch
 
 	internal static IEnumerable<MenuItem> ArithmeticBinaryOperatorGroupItems(ContextualContext context)
 	{
-		if (TypeUtils.TryGetGenericTypeDefinition(context.NodeType, out var genericType))
+		var psuedoGenerics = context.World.GetPsuedoGenericTypesForWorld();
+		var SqrtGroup = psuedoGenerics.SqrtGroup().ToDictionary();
+		bool isSqrt = false;
+		IEnumerable<Type>? sqrtTypes = null;
+		if (SqrtGroup.TryGetValue(context.NodeType, out var typeArgument))
 		{
-			bool inGroup = ArithmeticBinaryOperatorGroup.Contains(genericType);
-			var psuedoGenerics = context.World.GetPsuedoGenericTypesForWorld();
-			var SqrtNodes = psuedoGenerics.Sqrt.ToBiDictionary(a => a.Node, a => a.Types.First());
-			var SqrtGroup = SqrtNodes.ToDictionary(a => a.First, a => a.Second);
+			isSqrt = true;
+			sqrtTypes = typeArgument;
+		}
+		if (TypeUtils.TryGetGenericTypeDefinition(context.NodeType, out var genericType) || isSqrt)
+		{
+			bool inGroup = false;
+			if (genericType != null) inGroup = ArithmeticBinaryOperatorGroup.Contains(genericType);
 
-			bool isSqrt = false;
-			if (SqrtGroup.TryGetValue(context.NodeType, out var typeArgument))
-			{
-				isSqrt = true;
-			}
 			if (inGroup || isSqrt)
 			{
-				var opType = context.NodeType.GenericTypeArguments[0];
+				Type? opType = null;
+				if (inGroup) opType = context.NodeType.GenericTypeArguments[0];
+				if (isSqrt && sqrtTypes != null)
+				{
+					opType = sqrtTypes.First();
+				}
+				if (opType == null) yield break;
+
 				var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(opType));
 
 				if (coder.Property<bool>("SupportsAddSub").Value)
@@ -64,17 +75,31 @@ static partial class ContextualSwapActionsPatch
 
 				if (coder.Property<bool>("SupportsMul").Value)
 				{
-					yield return new MenuItem(typeof(ValueSquare<>).MakeGenericType(opType));
+					yield return new MenuItem(
+						node: typeof(ValueSquare<>).MakeGenericType(opType),
+						connectionTransferType: ConnectionTransferType.ByIndexLossy
+					);
 				}
 
-				if (isSqrt)
+				var matchingNodes = SqrtGroup
+				.Where(a => a.Value.FirstOrDefault() == opType)
+				.Select(a => a.Key);
+
+				foreach (var match in matchingNodes)
 				{
-					var matchingNodes = SqrtGroup.Where(a => a.Value == typeArgument).Select(a => a.Key);
-					foreach (var match in matchingNodes)
-					{
-						yield return new MenuItem(match);
-					}
+					yield return new MenuItem(
+						node: match,
+						connectionTransferType: ConnectionTransferType.ByIndexLossy
+					);
 				}
+				//if (isSqrt)
+				//{
+				//	var matchingNodes = SqrtGroup.Where(a => a.Value == typeArgument).Select(a => a.Key);
+				//	foreach (var match in matchingNodes)
+				//	{
+				//		yield return new MenuItem(match);
+				//	}
+				//}
 			}
 		}
 	}

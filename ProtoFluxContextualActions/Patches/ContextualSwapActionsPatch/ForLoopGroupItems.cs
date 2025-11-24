@@ -1,4 +1,5 @@
 using ProtoFlux.Runtimes.Execution.Nodes;
+using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using System;
 using System.Collections.Generic;
 
@@ -11,6 +12,8 @@ static partial class ContextualSwapActionsPatch
 		typeof(For),
 		typeof(While),
 		typeof(RangeLoopInt),
+		typeof(FireWhileTrue),
+		typeof(LocalFireWhileTrue),
 		typeof(AsyncFor),
 		typeof(AsyncWhile),
 		typeof(AsyncRangeLoopInt),
