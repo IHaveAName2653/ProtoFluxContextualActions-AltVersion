@@ -16,6 +16,7 @@ using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Async;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Audio;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Avatar;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Avatar.BodyNodes;
+using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Elements;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Input.Keyboard;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Input.Mouse;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Interaction;
@@ -65,7 +66,7 @@ namespace ProtoFluxContextualActions.Patches;
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.Update))]
 internal static class ContextualSelectionActionsPatch
 {
-	public static string ProxyTypeName = "Type";
+	public static string ProxyTypeName = "Wire";
 	internal readonly struct MenuItem(Type node, string? group = "", Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = null)
 	{
 		internal readonly Type node = node;
@@ -183,16 +184,9 @@ internal static class ContextualSelectionActionsPatch
 
 				var customItems = FluxRecipeConfig.GetItems(__instance, elementProxy).Take(12).ToList();
 
-				foreach (var customItem in customItems)
+				if (customItems.Count != 0)
 				{
-					var label = (LocaleString)customItem.DisplayName;
-					var menuItem = menu.AddItem(in label, (Uri?)null, colorX.LightGray);
-					menuItem.Button.LocalPressed += (button, data) =>
-					{
-						customItem.onMenuPress(__instance, elementProxy, customItem.recipe);
-						__instance.LocalUser.CloseContextMenu(__instance);
-						CleanupDraggedWire(__instance);
-					};
+					AddSubfolderCustom(__instance, elementProxy, menu, "Custom", colorX.LightGray, colorX.Orange, customItems);
 				}
 			});
 
@@ -223,6 +217,30 @@ internal static class ContextualSelectionActionsPatch
 				{
 					colorX targetColor = itemColor ?? item.node.GetTypeColor();
 					AddMenuItem(tool, proxy, newMenu, targetColor, item, setup);
+				}
+			});
+		});
+	}
+	private static void AddSubfolderCustom(ProtoFluxTool tool, ProtoFluxElementProxy proxy, ContextMenu menu, string folderName, colorX color, colorX? itemColor, List<FluxRecipeConfig.PartialMenuItem> items)
+	{
+		AddMenuFolder(menu, folderName, color, () =>
+		{
+			tool.StartTask(async () =>
+			{
+				UniLog.Warning("STARTING TO CREATE CUSTOM MENU ITEMS");
+				var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
+				foreach (FluxRecipeConfig.PartialMenuItem item in items)
+				{
+					UniLog.Warning("CREATED A CUSTOM ITEM");
+					var label = (LocaleString)item.DisplayName;
+					var menuItem = menu.AddItem(in label, (Uri?)null, colorX.LightGray);
+					menuItem.Button.LocalPressed += (button, data) =>
+					{
+						UniLog.Warning("CUSTOM ITEM PRESSED??");
+						item.onMenuPress(tool, proxy, item.recipe);
+						tool.LocalUser.CloseContextMenu(tool);
+						CleanupDraggedWire(tool);
+					};
 				}
 			});
 		});
@@ -310,6 +328,12 @@ internal static class ContextualSelectionActionsPatch
 		addedNode.TryConnectImpulse(impulseProxy.NodeImpulse.Target, addedNode.GetOperation(0), undoable: true);
 	}
 	static void ProcessOperationProxyItem(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy, MenuItem item, ProtoFluxNode addedNode)
+	{
+		ProtoFluxOperationProxy operationProxy = (ProtoFluxOperationProxy)elementProxy;
+		if (item.overload) throw new Exception("Overloading with ProtoFluxOperationProxy is not supported");
+		addedNode.TryConnectImpulse(addedNode.GetImpulse(0), operationProxy.NodeOperation.Target, undoable: true);
+	}
+	static void ProcessCustomItem(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy, MenuItem item, ProtoFluxNode addedNode)
 	{
 		ProtoFluxOperationProxy operationProxy = (ProtoFluxOperationProxy)elementProxy;
 		if (item.overload) throw new Exception("Overloading with ProtoFluxOperationProxy is not supported");
@@ -564,7 +588,6 @@ internal static class ContextualSelectionActionsPatch
 		}
 		var changeVariableNode = GetNodeForType(outputType, [
 			new NodeTypeRecord(typeof(FireOnValueChange<>), null, null),
-			new NodeTypeRecord(typeof(FireOnTypeChange), null, null),
 			new NodeTypeRecord(typeof(FireOnObjectValueChange<>), null, null),
 			new NodeTypeRecord(typeof(FireOnRefChange<>), null, null),
 		]);
@@ -831,6 +854,13 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(HeadRotation), group: ProxyTypeName);
 		}
 
+		if (outputType == typeof(IWorldElement))
+		{
+			yield return new MenuItem(typeof(AllocatingUser), group: ProxyTypeName);
+			yield return new MenuItem(typeof(ReferenceID), group: ProxyTypeName);
+			yield return new MenuItem(typeof(IsRemoved), group: ProxyTypeName);
+		}
+
 		if (outputType == typeof(User))
 		{
 			yield return new MenuItem(typeof(UserUsername), group: ProxyTypeName);
@@ -1026,8 +1056,25 @@ internal static class ContextualSelectionActionsPatch
 				},
 				group: "Variables"
 			);
+			var variableLatchInput = GetNodeForType(nodeVariable, [
+				new NodeTypeRecord(typeof(ValueWriteLatch<>), null, null),
+				new NodeTypeRecord(typeof(ObjectWriteLatch<>), null, null),
+			]);
+			yield return new MenuItem(
+				variableLatchInput,
+				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
+				{
+					ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
+
+					ISyncRef targetRef = newNode.GetReference(0);
+
+					newNode.TryConnectReference(targetRef, outputProxy.Node.Target, undoable: true);
+
+					return false;
+				},
+				group: "Variables"
+			);
 		}
-		
 	}
 	#endregion
 
@@ -1070,14 +1117,20 @@ internal static class ContextualSelectionActionsPatch
 
 			List<User> users = [];
 			inputProxy.Slot.World.GetUsers(users);
-			Type userInput = ProtoFluxHelper.GetInputNode(typeof(User));
 			foreach (User user in users)
 			{
-				yield return new MenuItem(userInput, group: "User List", name: user.UserName, onNodeSpawn: (node, proxy, tool) =>
-				{
-					node.GetReference(0).Target = user;
-					return true;
-				});
+				yield return new MenuItem(
+					typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
+					name: user.UserName,
+					onNodeSpawn: (node, proxy, tool) =>
+					{
+						var comp = node.Slot.GetComponent<FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>>();
+						comp.Target.Target = user;
+						return true;
+					},
+					binding: typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
+					group: "User List"
+				);
 			}
 		}
 
@@ -1280,7 +1333,6 @@ internal static class ContextualSelectionActionsPatch
 				(typeof(SphericalHarmonicsL2<>),  [typeof(UnpackSH2<>)]),
 				(typeof(SphericalHarmonicsL3<>),  [typeof(UnpackSH3<>)]),
 				(typeof(SphericalHarmonicsL4<>),  [typeof(UnpackSH4<>)]),
-				(typeof(floatQ), [typeof(ToAxisAngle_floatQ)])
 			])
 			.ToDictionary(i => i.Item1, i => i.Item2.ToList());
 
@@ -1325,7 +1377,6 @@ internal static class ContextualSelectionActionsPatch
 				(typeof(SphericalHarmonicsL2<>),  [typeof(PackSH2<>)]),
 				(typeof(SphericalHarmonicsL3<>),  [typeof(PackSH3<>)]),
 				(typeof(SphericalHarmonicsL4<>),  [typeof(PackSH4<>)]),
-				(typeof(floatQ), [typeof(LookRotation_floatQ), typeof(FromToRotation_floatQ), typeof(AxisAngle_floatQ)])
 			])
 			.ToDictionary(i => i.Item1, i => i.Item2.ToList());
 

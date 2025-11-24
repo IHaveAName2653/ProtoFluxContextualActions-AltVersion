@@ -3,6 +3,7 @@ using FrooxEngine;
 using FrooxEngine.ProtoFlux;
 using HarmonyLib;
 using ProtoFlux.Core;
+using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFluxContextualActions.Attributes;
 using ProtoFluxContextualActions.Extensions;
 using Renderite.Shared;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using static FastNoise;
 
 namespace ProtoFluxContextualActions.Patches;
 
@@ -18,13 +20,15 @@ namespace ProtoFluxContextualActions.Patches;
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.OnSecondaryPress))]
 internal static class ContextualReferenceActionsPatch
 {
-	internal readonly struct MenuItem(Type node, Type? binding = null, string? name = null)
+	internal readonly struct MenuItem(Type node, Type? binding = null, string? name = null, Action<ProtoFluxTool, ProtoFluxNode, IWorldElement, MenuItem>? overrideProc = null)
 	{
 		internal readonly Type node = node;
 
 		internal readonly Type? binding = binding;
 
 		internal readonly string? name = name;
+
+		internal readonly Action<ProtoFluxTool, ProtoFluxNode, IWorldElement, MenuItem>? processOverride = overrideProc;
 
 		internal readonly string DisplayName => name ?? NodeMetadataHelper.GetMetadata(node).Name ?? node.GetNiceTypeName();
 	}
@@ -46,7 +50,7 @@ internal static class ContextualReferenceActionsPatch
 		};
 	}
 
-	static readonly Dictionary<Type, MenuItem[]> cache = [];
+	static readonly Dictionary<Type, List<MenuItem>> cache = [];
 
 	internal static bool GetReferenceActions(ProtoFluxTool __instance)
 	{
@@ -54,9 +58,12 @@ internal static class ContextualReferenceActionsPatch
 		var grabbedReference = __instance.GetGrabbedReference();
 		if (grabbedReference == null) return true;
 
-		var items = cache.GetOrCreate(grabbedReference.GetType(), () => MenuItems(__instance, grabbedReference).Take(12).ToArray());
+		var items = cache.GetOrCreate(grabbedReference.GetType(), () => MenuItems(__instance, grabbedReference).Take(12).ToList());
+		var nonCachedItems = MenuItemNonCache(__instance, grabbedReference).Take(12).ToList();
 
-		if (items.Length != 0)
+		List<MenuItem> allItems = [.. items, .. nonCachedItems];
+
+		if (allItems.Count != 0)
 		{
 			if (__instance.LocalUser.IsContextMenuOpen())
 			{
@@ -68,10 +75,15 @@ internal static class ContextualReferenceActionsPatch
 			{
 				var menu = await __instance.LocalUser.OpenContextMenu(__instance, __instance.Slot);
 
-				foreach (var menuItem in items)
+				foreach (var menuItem in allItems)
 				{
 					AddMenuItem(__instance, menu, menuItem, n =>
 					{
+						if (menuItem.processOverride != null)
+						{
+							menuItem.processOverride(__instance, n, grabbedReference, menuItem);
+							return;
+						}
 						// todo: sanity checking rather than assuming
 						if (n.NodeGlobalRefCount > 0)
 						{
@@ -101,6 +113,31 @@ internal static class ContextualReferenceActionsPatch
 			if (globalRefMeta != null && globalRefMeta.ValueType.IsAssignableFrom(grabbedReference.GetType()))
 			{
 				yield return new MenuItem(nodeType);
+			}
+		}
+	}
+	internal static IEnumerable<MenuItem> MenuItemNonCache(ProtoFluxTool __instance, IWorldElement? grabbedReference)
+	{
+		if (grabbedReference == null) yield break;
+		if (grabbedReference.GetType() == typeof(Slot))
+		{
+			Slot grabbed = (Slot)grabbedReference;
+			string tag = grabbed.Tag ?? "";
+			if (!string.IsNullOrEmpty(tag))
+			{
+				if (tag.Contains("menu", StringComparison.InvariantCultureIgnoreCase) && tag.Contains("item", StringComparison.InvariantCultureIgnoreCase))
+				{
+					yield return new MenuItem(typeof(DynamicImpulseReceiver), overrideProc: (tool, node, grabbed, item) =>
+					{
+						Slot grabSlot = (Slot)grabbedReference;
+
+						var globalSyncRef = node.GetGlobalRef(0);
+						var globalRef = (IGlobalValueProxy)node.Slot.AttachComponent(typeof(GlobalValue<string>));
+						globalSyncRef.TrySet(globalRef);
+						globalRef.TrySetValue("ItemSelected");
+					},
+					name: "Menu Item Selected");
+				}
 			}
 		}
 	}

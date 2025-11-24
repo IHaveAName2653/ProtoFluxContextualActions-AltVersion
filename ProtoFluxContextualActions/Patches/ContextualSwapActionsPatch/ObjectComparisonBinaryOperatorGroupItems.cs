@@ -35,7 +35,7 @@ static partial class ContextualSwapActionsPatch
 				var nodeType = match.MakeGenericType(context.NodeType.GenericTypeArguments);
 				if (nodeType.IsValidGenericType(false))
 				{
-					yield return new MenuItem(nodeType);
+					yield return new MenuItem(nodeType, connectionTransferType: ConnectionTransferType.ByIndexLossy);
 				}
 			}
 		}
