@@ -328,20 +328,19 @@ public static class FluxRecipeConfig
 		});
 	}
 
-	public static void RecipeFromSlot(Slot target)
+	public static void RecipeFromSlot(Slot target, DynamicVariableSpace dynVars)
 	{
-		if (target.ChildrenCount == 0) return;	
+		if (target.ChildrenCount == 0) return;
 
-		DynamicValueVariable<string> recipeNameVar = target.GetComponent<DynamicValueVariable<string>>();
-		if (recipeNameVar == null) return;
-		DynamicValueVariable<bool> outputVar = target.GetComponent<DynamicValueVariable<bool>>();
-		if (outputVar == null) return;
-		DynamicTypeVariable typeVar = target.GetComponent<DynamicTypeVariable>();
-		if (typeVar == null) return;
-		if (string.IsNullOrEmpty(recipeNameVar.Value.Value)) return;
+		if (!dynVars.TryReadValue("RecipeName", out string recipeName)) return;
+		if (!dynVars.TryReadValue("RecipeIsOutput", out bool recipeIsOutput)) return;
+		if (!dynVars.TryReadValue("RecipeRootNode", out Slot recipeRootSlot)) return;
+		if (!dynVars.TryReadValue("RecipeType", out Type recipeType)) return;
 
-		DynamicReferenceVariable<Slot> rootNodeVar = target.GetComponent<DynamicReferenceVariable<Slot>>();
-		Slot rootNode = rootNodeVar.Reference.Target ?? target[0];
+
+		if (string.IsNullOrEmpty(recipeName)) return;
+
+		Slot rootNode = recipeRootSlot ?? target[0];
 		ProtoFluxNode rootNodeNode = rootNode.GetComponent<ProtoFluxNode>();
 		if (rootNodeNode == null) return;
 
@@ -350,9 +349,9 @@ public static class FluxRecipeConfig
 		nodes.OrderBy(node => node == rootNodeNode).ThenBy(node => node.Slot.ChildIndex);
 		FluxRecipe newRecipe = new()
 		{
-			RecipeName = recipeNameVar.Value.Value,
-			IsOutputProxy = outputVar.Value.Value,
-			AllowedProxyTypes = [typeVar.Value.Value],
+			RecipeName = recipeName,
+			IsOutputProxy = recipeIsOutput,
+			AllowedProxyTypes = [recipeType],
 			NodeDefinitions = []
 		};
 
@@ -488,6 +487,7 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 	public List<byte3> NodeConnections = connections;
 }
 
+
 [HarmonyPatch(typeof(DynamicImpulseTrigger), "Trigger")]
 public static class RecipeStringInterface
 {
@@ -501,32 +501,30 @@ public static class RecipeStringInterface
 		string target = parts[0];
 		string variable = parts.Length >= 2 ? parts[1] : "";
 
+		var constructSpace = hierarchy.FindSpace("FluxConstructData");
+		var recipeSpace = hierarchy.FindSpace("FluxRecipeData");
+		var makerSpace = hierarchy.FindSpace("FluxRecipeMaker");
 
 		if (target == "AddRecipe")
 		{
 			if (hierarchy == null) return true;
-			FluxRecipeConfig.RecipeFromSlot(hierarchy);
+			FluxRecipeConfig.RecipeFromSlot(hierarchy, makerSpace);
 			return false;
 		}
 		if (target == "BuildToSlot")
 		{
 			if (string.IsNullOrEmpty(variable)) return true;
 			if (hierarchy == null) return true;
-			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
+			if (constructSpace.TryReadValue("Tool", out ProtoFluxTool fluxTool))
 			{
-				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
-				space.SpaceName.Value = "FluxConstructData";
+				if (fluxTool == null) return true;
+				FluxRecipeConfig.ConstructFluxRecipe(
+					fluxTool,
+					null,
+					FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable), true, hierarchy
+				);
+				return false;
 			}
-			var data = hierarchy.GetComponent<DynamicReferenceVariable<ProtoFluxTool>>();
-			if (data == null)
-			{
-				data = hierarchy.AttachComponent<DynamicReferenceVariable<ProtoFluxTool>>();
-				data.VariableName.Value = "FluxConstructData/Tool";
-				return true;
-			}
-			if (data.Reference.Target == null) return true;
-			FluxRecipeConfig.ConstructFluxRecipe(data.Reference.Target, null, FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable), true, hierarchy);
-			return false;
 		}
 		if (target == "RemoveRecipe")
 		{
@@ -542,69 +540,69 @@ public static class RecipeStringInterface
 		if (target == "Get")
 		{
 			if (string.IsNullOrEmpty(variable)) return true;
-			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
-			{
-				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
-				space.SpaceName.Value = "FluxRecipeData";
-			}
-			var data = hierarchy.GetComponent<DynamicValueVariable<string>>();
-			if (data == null)
-			{
-				data = hierarchy.AttachComponent<DynamicValueVariable<string>>();
-			}
-			data.VariableName.Value = "FluxRecipeData/ThisRecipe";
-			data.Value.Value = FluxRecipeConfig.GetStringFor(variable);
+			recipeSpace.TryWriteValue("ThisRecipe", FluxRecipeConfig.GetStringFor(variable));
 			return false;
 		}
 		if (target == "GetAll")
 		{
-			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
-			{
-				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
-				space.SpaceName.Value = "FluxRecipeData";
-			}
-			var data = hierarchy.GetComponent<DynamicValueVariable<string>>();
-			if (data == null)
-			{
-				data = hierarchy.AttachComponent<DynamicValueVariable<string>>();
-			}
-			data.VariableName.Value = "FluxRecipeData/AllRecipes";
-			data.Value.Value = FluxRecipeConfig.StringFromData();
+			recipeSpace.TryWriteValue("AllRecipes", FluxRecipeConfig.StringFromData());
 			return false;
 		}
 		if (target == "GetAllNames")
 		{
-			if (hierarchy.GetComponent<DynamicVariableSpace>() == null)
-			{
-				var space = hierarchy.AttachComponent<DynamicVariableSpace>();
-				space.SpaceName.Value = "FluxRecipeData";
-			}
-			var data = hierarchy.GetComponent<DynamicValueVariable<string>>();
-			if (data == null)
-			{
-				data = hierarchy.AttachComponent<DynamicValueVariable<string>>();
-			}
-			data.VariableName.Value = "FluxRecipeData/AllNames";
-			data.Value.Value = string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName));
+			recipeSpace.TryWriteValue("AllNames", string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName)));
 			return false;
 		}
 		if (target == "SetAll")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
-			FluxRecipeConfig.LoadFromString(variable);
-			return false;
+			if (!string.IsNullOrEmpty(variable))
+			{
+				FluxRecipeConfig.LoadFromString(variable);
+				return false;
+			}
+			else
+			{
+				if (recipeSpace.TryReadValue("AllRecipeString", out string content))
+				{
+					if (string.IsNullOrEmpty(content)) return true;
+					FluxRecipeConfig.LoadFromString(content);
+					return false;
+				}
+			}
 		}
-		if (target == "AddRecipe")
+		if (target == "AddRecipeString")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
-			FluxRecipeConfig.LoadSingleString(variable);
-			return false;
+			if (!string.IsNullOrEmpty(variable))
+			{
+				FluxRecipeConfig.LoadSingleString(variable);
+				return false;
+			}
+			else
+			{
+				if (recipeSpace.TryReadValue("Recipe", out string content))
+				{
+					if (string.IsNullOrEmpty(content)) return true;
+					FluxRecipeConfig.LoadSingleString(content);
+					return false;
+				}
+			}
 		}
 		if (target == "AddMultiple")
 		{
-			if (string.IsNullOrEmpty(variable)) return true;
-			FluxRecipeConfig.LoadMultiString(variable);
-			return false;
+			if (!string.IsNullOrEmpty(variable))
+			{
+				FluxRecipeConfig.LoadMultiString(variable);
+				return false;
+			}
+			else
+			{
+				if (recipeSpace.TryReadValue("Recipes", out string content))
+				{
+					if (string.IsNullOrEmpty(content)) return true;
+					FluxRecipeConfig.LoadMultiString(content);
+					return false;
+				}
+			}
 		}
 		return true;
 	}

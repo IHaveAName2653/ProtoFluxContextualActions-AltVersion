@@ -227,16 +227,13 @@ internal static class ContextualSelectionActionsPatch
 		{
 			tool.StartTask(async () =>
 			{
-				UniLog.Warning("STARTING TO CREATE CUSTOM MENU ITEMS");
 				var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
 				foreach (FluxRecipeConfig.PartialMenuItem item in items)
 				{
-					UniLog.Warning("CREATED A CUSTOM ITEM");
 					var label = (LocaleString)item.DisplayName;
 					var menuItem = menu.AddItem(in label, (Uri?)null, colorX.LightGray);
 					menuItem.Button.LocalPressed += (button, data) =>
 					{
-						UniLog.Warning("CUSTOM ITEM PRESSED??");
 						item.onMenuPress(tool, proxy, item.recipe);
 						tool.LocalUser.CloseContextMenu(tool);
 						CleanupDraggedWire(tool);
@@ -481,6 +478,7 @@ internal static class ContextualSelectionActionsPatch
 					if (coder.Property<bool>("SupportsMul").Value)
 					{
 						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueSquare<>).MakeGenericType(outputType), group: "Math");
 					}
 
 					if (coder.Property<bool>("SupportsDiv").Value)
@@ -521,6 +519,12 @@ internal static class ContextualSelectionActionsPatch
 					if (coder.Property<bool>("SupportsSmoothLerp").Value)
 					{
 						yield return new MenuItem(typeof(ValueSmoothLerp<>).MakeGenericType(outputType), group: "Math");
+					}
+
+					if (coder.Property<bool>("SupportsAddSub").Value)
+					{
+						yield return new MenuItem(typeof(ValueInc<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueDec<>).MakeGenericType(outputType), group: "Math");
 					}
 				}
 
@@ -621,6 +625,8 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(GetActiveUser), group: "Slot Info");
 
 			yield return new MenuItem(typeof(DestroySlot), group: "Slot Operations");
+
+			yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 
 			yield return new MenuItem(typeof(ObjectCast<Slot, IWorldElement>), name: "Allocating User", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
 			{
@@ -813,6 +819,9 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(Contains), group: "String Info");
 			yield return new MenuItem(typeof(Substring), group: "String Operations");
 			yield return new MenuItem(typeof(FormatString), group: "String Operations");
+
+			yield return new MenuItem(typeof(ConcatenateString), group: "String Operations");
+			yield return new MenuItem(typeof(ConcatenateMultiString), group: "String Operations");
 		}
 
 		else if (outputType == typeof(DateTime))

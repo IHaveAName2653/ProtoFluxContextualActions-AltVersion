@@ -89,8 +89,9 @@ public class ProtoFluxToolData
 		InputInterface input = user.InputInterface;
 		IStandardController PrimaryController = input.GetControllerNode(side);
 		IStandardController OppositeController = input.GetControllerNode(opposite);
-		TouchController PrimaryTouchController = (TouchController)PrimaryController;
-		TouchController OppositeTouchController = (TouchController)OppositeController;
+		
+		TouchController? PrimaryTouchController = (TouchController?)input.GetVRControllerNode(side);
+		TouchController? OppositeTouchController = (TouchController?)input.GetVRControllerNode(opposite);
 
 		UserInput = input;
 
@@ -104,8 +105,8 @@ public class ProtoFluxToolData
 		bool VRGripLeft = OppositeController.ActionGrab.Held;
 		bool VRGripRight = PrimaryController.ActionGrab.Held;
 
-		bool VRTouchLeft = OppositeTouchController.ThumbRestTouch.Held;
-		bool VRTouchRight = PrimaryTouchController.ThumbRestTouch.Held;
+		bool VRTouchLeft = OppositeTouchController?.ThumbRestTouch.Held ?? false;
+		bool VRTouchRight = PrimaryTouchController?.ThumbRestTouch.Held ?? false;
 
 		// DESKTOP BINDS
 		bool DesktopMenuLeft = input.GetKey(GetMenuKey());
