@@ -67,7 +67,7 @@ namespace ProtoFluxContextualActions.Patches;
 internal static class ContextualSelectionActionsPatch
 {
 	public static string ProxyTypeName = "Wire";
-	internal readonly struct MenuItem(Type node, string? group = "", Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = null)
+	internal readonly struct MenuItem(Type node, string? group = "", Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, MenuItem, bool>? onNodeSpawn = null, Dictionary<string, object>? extraData = null)
 	{
 		internal readonly Type node = node;
 
@@ -79,7 +79,9 @@ internal static class ContextualSelectionActionsPatch
 
 		internal readonly string? group = group;
 
-		internal readonly Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = onNodeSpawn;
+		internal readonly Dictionary<string, object>? extraData = extraData;
+
+		internal readonly Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, MenuItem, bool>? onNodeSpawn = onNodeSpawn;
 
 		internal readonly string DisplayName => name ?? NodeMetadataHelper.GetMetadata(node).Name ?? node.GetNiceTypeName();
 	}
@@ -280,6 +282,14 @@ internal static class ContextualSelectionActionsPatch
 				// this is dumb
 				// TODO: investigate why it's needed to avoid the one or two update disconnect issue
 				await new Updates(1);
+
+				if (item.onNodeSpawn != null)
+				{
+					bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool, item);
+
+					if (!doConnect) return;
+				}
+
 				var output = addedNode.GetOutput(0); // TODO: specify
 				elementProxy.Node.Target.TryConnectInput(inputProxy.NodeInput.Target, output, allowExplicitCast: false, undoable: true);
 			});
@@ -310,7 +320,7 @@ internal static class ContextualSelectionActionsPatch
 
 			if (item.onNodeSpawn != null)
 			{
-				bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool);
+				bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool, item);
 
 				if (!doConnect) return;
 			}
@@ -449,56 +459,56 @@ internal static class ContextualSelectionActionsPatch
 				{
 					if (TryGetPsuedoGenericForType(world, "Slerp_", outputType) is Type slerpType)
 					{
-						yield return new MenuItem(slerpType, group: "Math");
+						yield return new MenuItem(slerpType, group: "Math++");
 					}
 
 					if (TryGetPsuedoGenericForType(world, "Pow_", outputType) is Type powType)
 					{
-						yield return new MenuItem(powType, group: "Math");
+						yield return new MenuItem(powType, group: "Math++");
 					}
 
 					if (coder.Property<bool>("SupportsMul").Value)
 					{
-						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Common Math");
 					}
 
 					if (coder.Property<bool>("SupportsDiv").Value)
 					{
-						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Common Math");
 					}
 				}
 				else
 				{
 					if (coder.Property<bool>("SupportsAddSub").Value)
 					{
-						yield return new MenuItem(typeof(ValueAdd<>).MakeGenericType(outputType), group: "Math");
-						yield return new MenuItem(typeof(ValueSub<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueAdd<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueSub<>).MakeGenericType(outputType), group: "Common Math");
 					}
 
 					if (coder.Property<bool>("SupportsMul").Value)
 					{
-						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Math");
-						yield return new MenuItem(typeof(ValueSquare<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueSquare<>).MakeGenericType(outputType), group: "Math++");
 					}
 
 					if (coder.Property<bool>("SupportsDiv").Value)
 					{
-						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Common Math");
 					}
 
 					if (coder.Property<bool>("SupportsNegate").Value)
 					{
-						yield return new MenuItem(typeof(ValueNegate<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueNegate<>).MakeGenericType(outputType), group: "Common Math");
 					}
 
 					if (coder.Property<bool>("SupportsMod").Value)
 					{
-						yield return new MenuItem(typeof(ValueMod<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueMod<>).MakeGenericType(outputType), group: "Common Math");
 					}
 
 					if (coder.Property<bool>("SupportsAbs").Value && !isMatrix)
 					{
-						yield return new MenuItem(typeof(ValueAbs<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueAbs<>).MakeGenericType(outputType), group: "Math++");
 					}
 
 					if (coder.Property<bool>("SupportsComparison").Value)
@@ -514,17 +524,17 @@ internal static class ContextualSelectionActionsPatch
 					// New elements placed at the end
 					if (coder.Property<bool>("SupportsLerp").Value)
 					{
-						yield return new MenuItem(typeof(ValueLerp<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueLerp<>).MakeGenericType(outputType), group: "Math++");
 					}
 					if (coder.Property<bool>("SupportsSmoothLerp").Value)
 					{
-						yield return new MenuItem(typeof(ValueSmoothLerp<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueSmoothLerp<>).MakeGenericType(outputType), group: "Math++");
 					}
 
 					if (coder.Property<bool>("SupportsAddSub").Value)
 					{
-						yield return new MenuItem(typeof(ValueInc<>).MakeGenericType(outputType), group: "Math");
-						yield return new MenuItem(typeof(ValueDec<>).MakeGenericType(outputType), group: "Math");
+						yield return new MenuItem(typeof(ValueInc<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueDec<>).MakeGenericType(outputType), group: "Common Math");
 					}
 				}
 
@@ -629,7 +639,7 @@ internal static class ContextualSelectionActionsPatch
 
 			yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 
-			yield return new MenuItem(typeof(ObjectCast<Slot, IWorldElement>), name: "Allocating User", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
+			yield return new MenuItem(typeof(ObjectCast<Slot, IWorldElement>), name: "Allocating User", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool, MenuItem _) =>
 			{
 				tool.StartTask(async () =>
 				{
@@ -685,7 +695,7 @@ internal static class ContextualSelectionActionsPatch
 
 			}, group: "Slot Info");
 
-			yield return new MenuItem(typeof(ObjectRelay<Slot>), name: "Foreach Child", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
+			yield return new MenuItem(typeof(ObjectRelay<Slot>), name: "Foreach Child", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool, MenuItem _) =>
 			{
 				tool.StartTask(async () =>
 				{
@@ -923,15 +933,15 @@ internal static class ContextualSelectionActionsPatch
 
 		if (outputType.IsEnum)
 		{
-			yield return new MenuItem(typeof(NextValue<>).MakeGenericType(outputType), name: typeof(NextValue<>).GetNiceName(), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ShiftEnum<>).MakeGenericType(outputType), name: typeof(ShiftEnum<>).GetNiceName(), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TryEnumToInt<>).MakeGenericType(outputType), name: "TryEnumToInt<T>", group: ProxyTypeName);
+			yield return new MenuItem(typeof(NextValue<>).MakeGenericType(outputType), name: typeof(NextValue<>).GetNiceName(), group: "Enums");
+			yield return new MenuItem(typeof(ShiftEnum<>).MakeGenericType(outputType), name: typeof(ShiftEnum<>).GetNiceName(), group: "Enums");
+			yield return new MenuItem(typeof(TryEnumToInt<>).MakeGenericType(outputType), name: "TryEnumToInt<T>", group: "Enums");
 			//yield return new MenuItem(typeof(ValueEquals<>).MakeGenericType(outputType));
 
 			var enumType = outputType.GetEnumUnderlyingType();
 			if (NodeUtils.TryGetEnumToNumberNode(enumType, out var toNumberType))
 			{
-				yield return new MenuItem(toNumberType.MakeGenericType(outputType), group: ProxyTypeName);
+				yield return new MenuItem(toNumberType.MakeGenericType(outputType), group: "Enums");
 			}
 		}
 
@@ -1017,11 +1027,11 @@ internal static class ContextualSelectionActionsPatch
 
 		if (Groups.WorldTimeFloatGroup.Contains(nodeType))
 		{
-			yield return new MenuItem(typeof(Sin_Float), group: "Math");
+			yield return new MenuItem(typeof(Sin_Float), group: "Math++");
 		}
 		else if (Groups.WorldTimeDoubleGroup.Contains(nodeType))
 		{
-			yield return new MenuItem(typeof(Sin_Double), group: "Math");
+			yield return new MenuItem(typeof(Sin_Double), group: "Math++");
 		}
 
 		if (TypeUtils.MatchesType(typeof(EnumToInt<>), nodeType) || TypeUtils.MatchesType(typeof(TryEnumToInt<>), nodeType))
@@ -1053,7 +1063,7 @@ internal static class ContextualSelectionActionsPatch
 			]);
 			yield return new MenuItem(
 				variableInput,
-				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
+				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _, MenuItem _) =>
 				{
 					ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
 
@@ -1071,7 +1081,7 @@ internal static class ContextualSelectionActionsPatch
 			]);
 			yield return new MenuItem(
 				variableLatchInput,
-				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
+				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _, MenuItem _) =>
 				{
 					ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
 
@@ -1131,14 +1141,19 @@ internal static class ContextualSelectionActionsPatch
 				yield return new MenuItem(
 					typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
 					name: user.UserName,
-					onNodeSpawn: (node, proxy, tool) =>
+					onNodeSpawn: (node, proxy, tool, item) =>
 					{
+						UniLog.Error("HEY HI WE SETTING A USER?");
 						var comp = node.Slot.GetComponent<FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>>();
-						comp.Target.Target = user;
+						if (item.extraData == null) return true;
+						if (!item.extraData.TryGetValue("User", out object? usr)) return true;
+						comp.Target.Target = (User)usr;
+						UniLog.Error($"HEY HI WE SET A USER? {(User)usr}");
 						return true;
 					},
 					binding: typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
-					group: "User List"
+					group: "User List",
+					extraData: new Dictionary<string, object>() { { "User", user} }
 				);
 			}
 		}

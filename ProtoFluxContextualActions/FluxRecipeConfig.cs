@@ -474,7 +474,7 @@ public struct FluxRecipe(string name, bool isOutput, List<Type?> types, List<Nod
 	public List<NodeDef> NodeDefinitions = nodes;
 }
 
-public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connections)
+public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connections, object? extraData = null)
 {
 	public bool IsRoot = root;
 
@@ -485,6 +485,8 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 	public float3 Offset = offset;
 
 	public List<byte3> NodeConnections = connections;
+
+	public object? ObjectData = extraData;
 }
 
 
