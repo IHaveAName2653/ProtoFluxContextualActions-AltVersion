@@ -613,7 +613,8 @@ internal static class ContextualSelectionActionsPatch
 
 		if (outputType == typeof(Slot))
 		{
-			yield return new MenuItem(typeof(GetParentSlot), group: "Slot Operations");
+			yield return new MenuItem(typeof(GetParentSlot), group: "Slot Info");
+			yield return new MenuItem(typeof(SetParent), group: "Slot Operations");
 			yield return new MenuItem(typeof(GlobalTransform), group: "Slot Info");
 			yield return new MenuItem(typeof(SetGlobalTransform), group: "Slot Operations");
 			yield return new MenuItem(typeof(GetForward), group: "Slot Info");

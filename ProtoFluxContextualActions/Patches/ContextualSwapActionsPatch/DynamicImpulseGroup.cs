@@ -23,8 +23,8 @@ static partial class ContextualSwapActionsPatch
 		if (DynamicImpulseGroup.Any(t => context.NodeType.IsGenericType ? t == context.NodeType.GetGenericTypeDefinition() : t == context.NodeType))
 		{
 
-			yield return new MenuItem(typeof(DynamicImpulseReceiver));
-			yield return new MenuItem(typeof(DynamicImpulseTrigger));
+			yield return new MenuItem(typeof(DynamicImpulseReceiver), connectionTransferType: ConnectionTransferType.ByIndexLossy);
+			yield return new MenuItem(typeof(DynamicImpulseTrigger), connectionTransferType: ConnectionTransferType.ByIndexLossy);
 
 			Type? target = null;
 			if (context.proxy is ProtoFluxInputProxy)
@@ -52,13 +52,13 @@ static partial class ContextualSwapActionsPatch
 				new NodeTypeRecord(typeof(DynamicImpulseReceiverWithValue<>), null, null),
 				new NodeTypeRecord(typeof(DynamicImpulseReceiverWithObject<>), null, null),
 			]);
-			yield return new(variableInput);
+			yield return new(variableInput, connectionTransferType: ConnectionTransferType.ByIndexLossy);
 
 			var variableInput2 = GetNodeForType(target, [
 				new NodeTypeRecord(typeof(DynamicImpulseTriggerWithValue<>), null, null),
 				new NodeTypeRecord(typeof(DynamicImpulseTriggerWithObject<>), null, null),
 			]);
-			yield return new(variableInput2);
+			yield return new(variableInput2, connectionTransferType: ConnectionTransferType.ByIndexLossy);
 		}
 	}
 }

@@ -518,10 +518,12 @@ public static class RecipeStringInterface
 			if (constructSpace.TryReadValue("Tool", out ProtoFluxTool fluxTool))
 			{
 				if (fluxTool == null) return true;
+				FluxRecipe? targetRecipe = FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable);
+				if (targetRecipe == null) return true;
 				FluxRecipeConfig.ConstructFluxRecipe(
 					fluxTool,
 					null,
-					FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable), true, hierarchy
+					targetRecipe.Value, true, hierarchy
 				);
 				return false;
 			}
