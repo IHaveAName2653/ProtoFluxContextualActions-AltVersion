@@ -67,7 +67,7 @@ namespace ProtoFluxContextualActions.Patches;
 internal static class ContextualSelectionActionsPatch
 {
 	public static string ProxyTypeName = "Wire";
-	internal readonly struct MenuItem(Type node, string? group = "", Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, MenuItem, bool>? onNodeSpawn = null, Dictionary<string, object>? extraData = null)
+	internal readonly struct MenuItem(Type node, string? group = "", Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = null)
 	{
 		internal readonly Type node = node;
 
@@ -79,9 +79,7 @@ internal static class ContextualSelectionActionsPatch
 
 		internal readonly string? group = group;
 
-		internal readonly Dictionary<string, object>? extraData = extraData;
-
-		internal readonly Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, MenuItem, bool>? onNodeSpawn = onNodeSpawn;
+		internal readonly Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = onNodeSpawn;
 
 		internal readonly string DisplayName => name ?? NodeMetadataHelper.GetMetadata(node).Name ?? node.GetNiceTypeName();
 	}
@@ -285,7 +283,7 @@ internal static class ContextualSelectionActionsPatch
 
 				if (item.onNodeSpawn != null)
 				{
-					bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool, item);
+					bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool);
 
 					if (!doConnect) return;
 				}
@@ -296,6 +294,13 @@ internal static class ContextualSelectionActionsPatch
 		}
 		else
 		{
+			if (item.onNodeSpawn != null)
+			{
+				bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool);
+
+				if (!doConnect) return;
+			}
+
 			var output = addedNode.NodeOutputs
 			.FirstOrDefault(o => typeof(INodeOutput<>).MakeGenericType(inputProxy.InputType).IsAssignableFrom(o.GetType()))
 			?? throw new Exception($"Could not find matching output of type '{inputProxy.InputType}' in '{addedNode}'");
@@ -320,7 +325,7 @@ internal static class ContextualSelectionActionsPatch
 
 			if (item.onNodeSpawn != null)
 			{
-				bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool, item);
+				bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool);
 
 				if (!doConnect) return;
 			}
@@ -332,18 +337,24 @@ internal static class ContextualSelectionActionsPatch
 	{
 		ProtoFluxImpulseProxy impulseProxy = (ProtoFluxImpulseProxy)elementProxy;
 		if (item.overload) throw new Exception("Overloading with ProtoFluxImpulseProxy is not supported");
+		if (item.onNodeSpawn != null)
+		{
+			bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool);
+
+			if (!doConnect) return;
+		}
 		addedNode.TryConnectImpulse(impulseProxy.NodeImpulse.Target, addedNode.GetOperation(0), undoable: true);
 	}
 	static void ProcessOperationProxyItem(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy, MenuItem item, ProtoFluxNode addedNode)
 	{
 		ProtoFluxOperationProxy operationProxy = (ProtoFluxOperationProxy)elementProxy;
 		if (item.overload) throw new Exception("Overloading with ProtoFluxOperationProxy is not supported");
-		addedNode.TryConnectImpulse(addedNode.GetImpulse(0), operationProxy.NodeOperation.Target, undoable: true);
-	}
-	static void ProcessCustomItem(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy, MenuItem item, ProtoFluxNode addedNode)
-	{
-		ProtoFluxOperationProxy operationProxy = (ProtoFluxOperationProxy)elementProxy;
-		if (item.overload) throw new Exception("Overloading with ProtoFluxOperationProxy is not supported");
+		if (item.onNodeSpawn != null)
+		{
+			bool doConnect = item.onNodeSpawn(addedNode, elementProxy, tool);
+
+			if (!doConnect) return;
+		}
 		addedNode.TryConnectImpulse(addedNode.GetImpulse(0), operationProxy.NodeOperation.Target, undoable: true);
 	}
 
@@ -639,7 +650,7 @@ internal static class ContextualSelectionActionsPatch
 
 			yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 
-			yield return new MenuItem(typeof(ObjectCast<Slot, IWorldElement>), name: "Allocating User", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool, MenuItem _) =>
+			yield return new MenuItem(typeof(ObjectCast<Slot, IWorldElement>), name: "Allocating User", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
 			{
 				tool.StartTask(async () =>
 				{
@@ -695,7 +706,7 @@ internal static class ContextualSelectionActionsPatch
 
 			}, group: "Slot Info");
 
-			yield return new MenuItem(typeof(ObjectRelay<Slot>), name: "Foreach Child", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool, MenuItem _) =>
+			yield return new MenuItem(typeof(ObjectRelay<Slot>), name: "Foreach Child", onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
 			{
 				tool.StartTask(async () =>
 				{
@@ -1063,7 +1074,7 @@ internal static class ContextualSelectionActionsPatch
 			]);
 			yield return new MenuItem(
 				variableInput,
-				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _, MenuItem _) =>
+				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
 				{
 					ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
 
@@ -1081,7 +1092,7 @@ internal static class ContextualSelectionActionsPatch
 			]);
 			yield return new MenuItem(
 				variableLatchInput,
-				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _, MenuItem _) =>
+				onNodeSpawn: (ProtoFluxNode newNode, ProtoFluxElementProxy proxy, ProtoFluxTool _) =>
 				{
 					ProtoFluxOutputProxy output = (ProtoFluxOutputProxy)proxy;
 
@@ -1141,19 +1152,16 @@ internal static class ContextualSelectionActionsPatch
 				yield return new MenuItem(
 					typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
 					name: user.UserName,
-					onNodeSpawn: (node, proxy, tool, item) =>
+					onNodeSpawn: (node, proxy, tool) =>
 					{
-						UniLog.Error("HEY HI WE SETTING A USER?");
+						UniLog.Warning($"HELLO USER WAS CAPTURED: {user}");
 						var comp = node.Slot.GetComponent<FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>>();
-						if (item.extraData == null) return true;
-						if (!item.extraData.TryGetValue("User", out object? usr)) return true;
-						comp.Target.Target = (User)usr;
-						UniLog.Error($"HEY HI WE SET A USER? {(User)usr}");
+						comp.Target.Target = user;
+						UniLog.Warning($"ITS SET???");
 						return true;
 					},
 					binding: typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
-					group: "User List",
-					extraData: new Dictionary<string, object>() { { "User", user} }
+					group: "User List"
 				);
 			}
 		}
