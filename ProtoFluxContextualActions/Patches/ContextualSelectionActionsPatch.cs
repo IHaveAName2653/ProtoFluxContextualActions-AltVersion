@@ -1154,16 +1154,74 @@ internal static class ContextualSelectionActionsPatch
 					name: user.UserName,
 					onNodeSpawn: (node, proxy, tool) =>
 					{
-						UniLog.Warning($"HELLO USER WAS CAPTURED: {user}");
 						var comp = node.Slot.GetComponent<FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>>();
 						comp.Target.Target = user;
-						UniLog.Warning($"ITS SET???");
 						return true;
 					},
 					binding: typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.RefObjectInput<User>),
 					group: "User List"
 				);
 			}
+
+			yield return new MenuItem(
+				typeof(AllocatingUser),
+				name: "Allocating User",
+				binding: typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.References.AllocatingUser),
+				onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
+			{
+				tool.StartTask(async () =>
+				{
+					// Node spawning 
+					Type castNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.Casts.ObjectCast<Slot, IWorldElement>);
+
+					ProtoFluxNode? thisCastNode = null;
+
+					tool.SpawnNode(castNode, newNode =>
+					{
+						thisCastNode = newNode;
+						newNode.EnsureVisual();
+					});
+
+					await new Updates(3);
+
+					if (thisCastNode == null)
+					{
+						node.Slot.Destroy();
+						return;
+					}
+
+					node.World.BeginUndoBatch("Create Allocating User");
+
+					thisCastNode.Slot.CreateSpawnUndoPoint("Spawn Allocating User");
+					node.Slot.CreateSpawnUndoPoint("Spawn Object Cast");
+
+					// Inputs and outputs
+
+					INodeOutput inputRelay = thisCastNode.GetOutput(0);
+
+					ISyncRef allocInstance = node.GetInput(0);
+
+					allocInstance.Target = inputRelay;
+
+					// Positions
+					float3 baseUp = node.Slot.Up;
+					float3 baseRight = node.Slot.Right;
+
+					void LocalTransformNode(ProtoFluxNode input, float X, float Y)
+					{
+						Slot target = input.Slot;
+						target.CopyTransform(node.Slot);
+						target.GlobalPosition += (baseUp * Y) + (baseRight * X);
+					}
+
+					LocalTransformNode(thisCastNode, -0.09f, -0.00375f);
+
+					node.World.EndUndoBatch();
+				});
+
+				return true;
+
+			}, group: "Slot Info");
 		}
 
 		else if (inputType == typeof(UserRoot))
