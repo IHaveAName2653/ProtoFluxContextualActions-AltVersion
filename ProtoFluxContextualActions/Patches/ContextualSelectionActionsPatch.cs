@@ -397,10 +397,12 @@ internal static class ContextualSelectionActionsPatch
 		// TODO: convert to while?
 		yield return new MenuItem(typeof(For), group: "Impulse");
 		yield return new MenuItem(typeof(If), group: "Impulse");
-		yield return new MenuItem(typeof(ValueWrite<dummy>), group: "Impulse");
+		yield return new MenuItem(typeof(ValueWrite<dummy>), group: "Variables");
 		yield return new MenuItem(typeof(Sequence), group: "Impulse");
 		yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 		yield return new MenuItem(typeof(StartAsyncTask), group: "Impulse");
+
+		yield return new MenuItem(typeof(DataModelBooleanToggle), group: "Variables");
 
 		if (IsIterationNode(nodeType))
 		{
@@ -410,8 +412,26 @@ internal static class ContextualSelectionActionsPatch
 
 		else if (nodeType == typeof(DuplicateSlot))
 		{
-			yield return new MenuItem(typeof(SetGlobalTransform), group: "Transform");
-			yield return new MenuItem(typeof(SetLocalTransform), group: "Transform");
+			yield return new MenuItem(typeof(SetGlobalTransform), group: "Transform", onNodeSpawn: (node, proxy, tool) =>
+			{
+				tool.StartTask(async () =>
+				{
+					await new Updates(3);
+
+					node.GetInput(0).Target = proxy.Node.Target.GetOutput(0);
+				});
+				return true;
+			});
+			yield return new MenuItem(typeof(SetLocalTransform), group: "Transform", onNodeSpawn: (node, proxy, tool) =>
+			{
+				tool.StartTask(async () =>
+				{
+					await new Updates(3);
+
+					node.GetInput(0).Target = proxy.Node.Target.GetOutput(0);
+				});
+				return true;
+			});
 		}
 
 		else if (nodeType == typeof(RenderToTextureAsset))
@@ -450,6 +470,15 @@ internal static class ContextualSelectionActionsPatch
 
 		yield return new MenuItem(typeof(AsyncDynamicImpulseReceiver), group: "Async Impulse");
 		yield return new MenuItem(typeof(StartAsyncTask), group: "Async Impulse");
+
+
+		yield return new MenuItem(typeof(OnLoaded), group: "Events");
+		yield return new MenuItem(typeof(OnSaving), group: "Events");
+		yield return new MenuItem(typeof(OnStart), group: "Events");
+		yield return new MenuItem(typeof(OnDuplicate), group: "Events");
+		yield return new MenuItem(typeof(OnDestroy), group: "Events");
+		yield return new MenuItem(typeof(OnDestroying), group: "Events");
+		yield return new MenuItem(typeof(OnPackageImported), group: "Events");
 	}
 
 	internal static IEnumerable<MenuItem> GeneralNumericOperationMenuItems(ProtoFluxElementProxy? target)
@@ -646,6 +675,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(GetObjectRoot), group: "Slot Info");
 			yield return new MenuItem(typeof(GetActiveUser), group: "Slot Info");
 
+			yield return new MenuItem(typeof(DuplicateSlot), group: "Slot Operations");
 			yield return new MenuItem(typeof(DestroySlot), group: "Slot Operations");
 
 			yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
@@ -1167,61 +1197,7 @@ internal static class ContextualSelectionActionsPatch
 				typeof(AllocatingUser),
 				name: "Allocating User",
 				binding: typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.References.AllocatingUser),
-				onNodeSpawn: (ProtoFluxNode node, ProtoFluxElementProxy proxy, ProtoFluxTool tool) =>
-			{
-				tool.StartTask(async () =>
-				{
-					// Node spawning 
-					Type castNode = typeof(FrooxEngine.ProtoFlux.Runtimes.Execution.Nodes.Casts.ObjectCast<Slot, IWorldElement>);
-
-					ProtoFluxNode? thisCastNode = null;
-
-					tool.SpawnNode(castNode, newNode =>
-					{
-						thisCastNode = newNode;
-						newNode.EnsureVisual();
-					});
-
-					await new Updates(3);
-
-					if (thisCastNode == null)
-					{
-						node.Slot.Destroy();
-						return;
-					}
-
-					node.World.BeginUndoBatch("Create Allocating User");
-
-					thisCastNode.Slot.CreateSpawnUndoPoint("Spawn Allocating User");
-					node.Slot.CreateSpawnUndoPoint("Spawn Object Cast");
-
-					// Inputs and outputs
-
-					INodeOutput inputRelay = thisCastNode.GetOutput(0);
-
-					ISyncRef allocInstance = node.GetInput(0);
-
-					allocInstance.Target = inputRelay;
-
-					// Positions
-					float3 baseUp = node.Slot.Up;
-					float3 baseRight = node.Slot.Right;
-
-					void LocalTransformNode(ProtoFluxNode input, float X, float Y)
-					{
-						Slot target = input.Slot;
-						target.CopyTransform(node.Slot);
-						target.GlobalPosition += (baseUp * Y) + (baseRight * X);
-					}
-
-					LocalTransformNode(thisCastNode, -0.09f, -0.00375f);
-
-					node.World.EndUndoBatch();
-				});
-
-				return true;
-
-			}, group: "Slot Info");
+				group: "Slot Info");
 		}
 
 		else if (inputType == typeof(UserRoot))

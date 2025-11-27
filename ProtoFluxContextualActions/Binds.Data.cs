@@ -78,6 +78,7 @@ public class ProtoFluxToolData
 
 	public void UpdateBinds(ProtoFluxTool tool)
 	{
+		if (tool == null) return;
 		Chirality side = tool.ActiveHandler.Side;
 		Chirality opposite = side.NextValue();
 		User user = tool.LocalUser;
@@ -89,9 +90,18 @@ public class ProtoFluxToolData
 		InputInterface input = user.InputInterface;
 		IStandardController PrimaryController = input.GetControllerNode(side);
 		IStandardController OppositeController = input.GetControllerNode(opposite);
-		
-		TouchController? PrimaryTouchController = (TouchController?)input.GetVRControllerNode(side);
-		TouchController? OppositeTouchController = (TouchController?)input.GetVRControllerNode(opposite);
+
+		IStandardController PrimaryVRController = input.GetVRControllerNode(side);
+		IStandardController OppositeVRController = input.GetVRControllerNode(opposite);
+
+		TouchController? PrimaryTouchController = null;
+		TouchController? OppositeTouchController = null;
+		if (PrimaryVRController != null)
+			if (PrimaryVRController.GetType() == typeof(TouchController))
+				PrimaryTouchController = (TouchController)PrimaryVRController;
+		if (OppositeVRController != null)
+			if (OppositeVRController.GetType() == typeof(TouchController))
+				OppositeTouchController = (TouchController)OppositeVRController;
 
 		UserInput = input;
 

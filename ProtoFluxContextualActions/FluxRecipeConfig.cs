@@ -332,10 +332,10 @@ public static class FluxRecipeConfig
 	{
 		if (target.ChildrenCount == 0) return;
 
-		if (!dynVars.TryReadValue("RecipeName", out string recipeName)) return;
-		if (!dynVars.TryReadValue("RecipeIsOutput", out bool recipeIsOutput)) return;
-		if (!dynVars.TryReadValue("RecipeRootNode", out Slot recipeRootSlot)) return;
-		if (!dynVars.TryReadValue("RecipeType", out Type recipeType)) return;
+		if (!DynSpaceHelper.TryRead(dynVars, "RecipeName", out string recipeName, true)) return;
+		if (!DynSpaceHelper.TryRead(dynVars, "RecipeIsOutput", out bool recipeIsOutput, true)) return;
+		if (!DynSpaceHelper.TryRead(dynVars, "RecipeRootNode", out Slot recipeRootSlot, true)) return;
+		if (!DynSpaceHelper.TryRead(dynVars, "RecipeType", out Type recipeType, true)) return;
 
 
 		if (string.IsNullOrEmpty(recipeName)) return;
@@ -517,7 +517,7 @@ public static class RecipeStringInterface
 		{
 			if (string.IsNullOrEmpty(variable)) return true;
 			if (hierarchy == null) return true;
-			if (constructSpace.TryReadValue("Tool", out ProtoFluxTool fluxTool))
+			if (DynSpaceHelper.TryRead(constructSpace, "Tool", out ProtoFluxTool fluxTool, true))
 			{
 				if (fluxTool == null) return true;
 				FluxRecipe? targetRecipe = FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable);
@@ -544,17 +544,17 @@ public static class RecipeStringInterface
 		if (target == "Get")
 		{
 			if (string.IsNullOrEmpty(variable)) return true;
-			recipeSpace.TryWriteValue("ThisRecipe", FluxRecipeConfig.GetStringFor(variable));
+			DynSpaceHelper.TryWrite(recipeSpace, "ThisRecipe", FluxRecipeConfig.GetStringFor(variable), true);
 			return false;
 		}
 		if (target == "GetAll")
 		{
-			recipeSpace.TryWriteValue("AllRecipes", FluxRecipeConfig.StringFromData());
+			DynSpaceHelper.TryWrite(recipeSpace, "AllRecipes", FluxRecipeConfig.StringFromData(), true);
 			return false;
 		}
 		if (target == "GetAllNames")
 		{
-			recipeSpace.TryWriteValue("AllNames", string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName)));
+			DynSpaceHelper.TryWrite(recipeSpace, "AllNames", string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName)), true);
 			return false;
 		}
 		if (target == "SetAll")
@@ -566,7 +566,7 @@ public static class RecipeStringInterface
 			}
 			else
 			{
-				if (recipeSpace.TryReadValue("AllRecipeString", out string content))
+				if (DynSpaceHelper.TryRead(recipeSpace, "AllRecipeString", out string content, true))
 				{
 					if (string.IsNullOrEmpty(content)) return true;
 					FluxRecipeConfig.LoadFromString(content);
@@ -583,7 +583,7 @@ public static class RecipeStringInterface
 			}
 			else
 			{
-				if (recipeSpace.TryReadValue("Recipe", out string content))
+				if (DynSpaceHelper.TryRead(recipeSpace, "Recipe", out string content, true))
 				{
 					if (string.IsNullOrEmpty(content)) return true;
 					FluxRecipeConfig.LoadSingleString(content);
@@ -600,7 +600,7 @@ public static class RecipeStringInterface
 			}
 			else
 			{
-				if (recipeSpace.TryReadValue("Recipes", out string content))
+				if (DynSpaceHelper.TryRead(recipeSpace, "Recipes", out string content, true))
 				{
 					if (string.IsNullOrEmpty(content)) return true;
 					FluxRecipeConfig.LoadMultiString(content);
