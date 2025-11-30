@@ -1,5 +1,11 @@
 # ProtoFlux Contextual Actions
 
+> #### NOTE
+> This is an alternate version to the proper version of the mod.
+This isnt a fork because i was stupid dumb idiot, and a merge would be *difficult*, if not impossible.
+> check out the [Real version](https://github.com/brecert/ProtoFluxContextualActions) of the mod, its better anyways
+
+
 ProtoFlux Contextual Actions is a [Resonite Mod Loader](https://github.com/resonite-modding-group/ResoniteModLoader) mod that adds additional context menu actions for different contexts that revolve around protoflux.
 
 Bug reports welcome, feel free to create an issue for any actions that you want added.
@@ -26,6 +32,36 @@ Adds a context menu item to create DynamicVariableInput nodes when holding a dyn
 
 ### Sample Spatial Variable Creation
 Adds a context menu item to create SampleSpatialVariable nodes when holding a spatial variable source component with the ProtoFlux tool.
+
+
+### New changes (alt version)
+- Increased selection/swap types
+- support for flux 'recipes'
+- - Flux 'recipes' can contain multiple nodes, rather than just one node
+- Dynamic impulse hooks
+- - allows for editing mod config without needing to close the game
+- Custom flux recipe creation (uses dyn impulse hooks)
+- Customizable binds
+- - Default binds are different from the base mod
+- - You can add custom binds in the config file
+- - You can use dynvars to make custom binds in-world (if active, disables all normal binds)
+- Only slightly behind on real repo commits
+- - I try to mirror the changes, but it clearly doesnt work very well :)
+- ### NODES ARE IN GROUPS
+- - note: swiping seems to break sometimes when using groups. will fix later
+- - warning: they are organized like actual shit and sometimes move. a lot. its approaching stability however
+- - Increases the amount of selection nodes by simply grouping into folders
+- - Improves readability and brain organization, its all seperated into 'nearly good' groups.
+- I do take suggestions for node types, anything is (probably) possible
+- - Only takes a rebuild of the project
+- Supports Hot Reload (if its a debug build), so you can update the mod without relaunching
+- Active developments on UI for managing everything, rather than config json and reading unreadable blocks of text
+- Insane levels of bullshit just for a few simple features
+
+
+(This mod is just an excuse to look *really deep* into how frooxengine works)\
+If you use this, i hope you enjoy my (really weird) version of this mod!
+
 
 ## Acknowledgements
 The project structure is based on https://github.com/esnya/ResoniteEsnyaTweaks.
