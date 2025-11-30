@@ -634,6 +634,12 @@ internal static class ContextualSelectionActionsPatch
 		]);
 		yield return new MenuItem(firstMatchNode, group: "Generic");
 
+		var conditionalNode = GetNodeForType(outputType, [
+			new NodeTypeRecord(typeof(ValueConditional<>), null, null),
+			new NodeTypeRecord(typeof(ObjectConditional<>), null, null),
+		]);
+		yield return new MenuItem(conditionalNode, group: "Selection");
+
 		if (outputType == typeof(bool))
 		{
 			yield return new MenuItem(typeof(FireOnTrue), group: "Impulse");
@@ -843,7 +849,6 @@ internal static class ContextualSelectionActionsPatch
 		else if (outputType == typeof(bool))
 		{
 			yield return new MenuItem(typeof(If), group: "Impulse");
-			yield return new MenuItem(typeof(ValueConditional<int>), group: "Selection"); // dummy type when // todo: convert to multi?
 			yield return new MenuItem(typeof(AND_Bool), group: ProxyTypeName);
 			yield return new MenuItem(typeof(OR_Bool), group: ProxyTypeName);
 			yield return new MenuItem(typeof(NOT_Bool), group: ProxyTypeName);

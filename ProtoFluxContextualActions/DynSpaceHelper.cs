@@ -13,6 +13,16 @@ namespace ProtoFluxContextualActions;
 
 public static class DynSpaceHelper
 {
+	public static DynamicVariableSpace TryGetSpace(Slot root, string SpaceName, bool createIfNotExist = false)
+	{
+		DynamicVariableSpace space = root.FindSpace(SpaceName);
+		if (space != null) return space;
+		if (!createIfNotExist) return null;
+		space = root.AttachComponent<DynamicVariableSpace>();
+		space.SpaceName.Value = SpaceName;
+		return space;
+	}
+
 	public static bool TryWrite<T>(DynamicVariableSpace space, string variableName, T value, bool createIfNotExist = false)
 	{
 		ValueManager<T> manager = space.GetManager<T>(variableName, false);
