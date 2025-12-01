@@ -227,14 +227,13 @@ internal static class ContextualSelectionActionsPatch
 		List<List<MenuItem>> PagedItems = Split(items);
 		AddMenuFolder(menu, folderName, color, () =>
 		{
-			RebuildPagedMenu(tool, proxy, color, itemColor, PagedItems, setup, 0, rootData);
+			RebuildPagedMenu(tool, proxy, itemColor, PagedItems, setup, 0, rootData);
 		});
 	}
 
 	private static void RebuildPagedMenu(
 		ProtoFluxTool tool,
 		ProtoFluxElementProxy proxy,
-		colorX color,
 		colorX? itemColor,
 		List<List<MenuItem>> PagedItems,
 		Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup,
@@ -256,12 +255,12 @@ internal static class ContextualSelectionActionsPatch
 			}
 			if (page > 0)
 			{
-				var label = (LocaleString)"Previous Page";
+				var label = (LocaleString)$"Previous Page<size=25%>\n\n</size><size=75%>({page}/{PagedItems.Count})</size>";
 				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Orange);
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
 					tool.LocalUser.CloseContextMenu(tool);
-					RebuildPagedMenu(tool, proxy, colorX.Orange, colorX.LightGray, PagedItems, setup, page - 1, rootData);
+					RebuildPagedMenu(tool, proxy, itemColor, PagedItems, setup, page - 1, rootData);
 				};
 			}
 			foreach (var item in PagedItems[page])
@@ -271,12 +270,12 @@ internal static class ContextualSelectionActionsPatch
 			}
 			if (PagedItems.Count - 1 > page)
 			{
-				var label = (LocaleString)"Next Page";
+				var label = (LocaleString)$"Next Page<size=25%>\n\n</size><size=75%>({page + 2}/{PagedItems.Count})</size>";
 				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Cyan);
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
 					tool.LocalUser.CloseContextMenu(tool);
-					RebuildPagedMenu(tool, proxy, colorX.Cyan, colorX.LightGray, PagedItems, setup, page + 1, rootData);
+					RebuildPagedMenu(tool, proxy, itemColor, PagedItems, setup, page + 1, rootData);
 				};
 			}
 		});
@@ -321,7 +320,7 @@ internal static class ContextualSelectionActionsPatch
 			}
 			if (page > 0)
 			{
-				var label = (LocaleString)"Previous Page";
+				var label = (LocaleString)$"Previous Page<size=25%>\n\n</size><size=75%>({page}/{PagedItems.Count})</size>";
 				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Orange);
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
@@ -342,7 +341,7 @@ internal static class ContextualSelectionActionsPatch
 			}
 			if (PagedItems.Count - 1 > page)
 			{
-				var label = (LocaleString)"Next Page";
+				var label = (LocaleString)$"Next Page<size=25%>\n\n</size><size=75%>({page + 2}/{PagedItems.Count})</size>";
 				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Cyan);
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
@@ -537,6 +536,7 @@ internal static class ContextualSelectionActionsPatch
 				});
 				return true;
 			});
+			yield return new MenuItem(typeof(SetSlotPersistentSelf), group: "Slot Operations");
 		}
 
 		else if (nodeType == typeof(RenderToTextureAsset))
@@ -798,10 +798,18 @@ internal static class ContextualSelectionActionsPatch
 
 		if (outputType == typeof(Slot))
 		{
+
+			yield return new MenuItem(typeof(SetGlobalTransform), group: "Slot Operations");
+
+			if (nodeType == typeof(DuplicateSlot))
+			{
+				yield return new MenuItem(typeof(SetSlotPersistentSelf), group: "Slot Operations");
+				yield return new MenuItem(typeof(SetSlotActiveSelf), group: "Slot Operations");
+			}
+
 			yield return new MenuItem(typeof(GetParentSlot), group: "Slot Info");
 			yield return new MenuItem(typeof(SetParent), group: "Slot Operations");
 			yield return new MenuItem(typeof(GlobalTransform), group: "Slot Info");
-			yield return new MenuItem(typeof(SetGlobalTransform), group: "Slot Operations");
 			yield return new MenuItem(typeof(GetForward), group: "Slot Info");
 			yield return new MenuItem(typeof(GetChild), group: "Slot Operations");
 			yield return new MenuItem(typeof(ChildrenCount), group: "Slot Info");
@@ -814,6 +822,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(DuplicateSlot), group: "Slot Operations");
 			yield return new MenuItem(typeof(DestroySlot), group: "Slot Operations");
 			yield return new MenuItem(typeof(DestroySlotChildren), group: "Slot Operations");
+
 
 			yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 

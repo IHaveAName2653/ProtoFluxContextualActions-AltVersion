@@ -18,9 +18,15 @@ static partial class ContextualSwapActionsPatch
 		typeof(SetSlotName),
 	];
 
+	static readonly FrozenSet<Type> SlotPersistentGroup = [
+		typeof(GetSlotPersistentSelf),
+		typeof(SetSlotPersistentSelf),
+	];
+
 	internal static IEnumerable<MenuItem> SlotTagGroupItems(ContextualContext context) =>
 	[
 		.. MatchNonGenericTypes(SlotTagGroup, context.NodeType),
-		.. MatchNonGenericTypes(SlotNameGroup, context.NodeType)
+		.. MatchNonGenericTypes(SlotNameGroup, context.NodeType),
+		.. MatchNonGenericTypes(SlotPersistentGroup, context.NodeType)
 	];
 }
