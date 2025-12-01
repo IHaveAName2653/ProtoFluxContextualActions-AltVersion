@@ -126,15 +126,17 @@ public static class DynSpaceHelper
 
 	public static bool TryGetArgOrName<T>(DynamicVariableSpace space, int index, string name, out T value, bool createIfNotExist = true)
 	{
-		if (ProtoFluxContextualActions.ReadNameFirst())
+		bool hasOverride = space.TryReadValue("UseIndex", out bool overrideIndex) || space.TryReadValue("UseNames", out bool overrideNames);
+		bool userWantsIndex = ProtoFluxContextualActions.ReadIndexFirst();
+		if ((hasOverride && overrideIndex) || (!hasOverride && userWantsIndex))
 		{
-			if (TryGetArg(space, name, out value, createIfNotExist)) return true;
 			if (TryGetArg(space, index, out value, createIfNotExist)) return true;
+			if (TryGetArg(space, name, out value, createIfNotExist)) return true;
 		}
 		else
 		{
-			if (TryGetArg(space, index, out value, createIfNotExist)) return true;
 			if (TryGetArg(space, name, out value, createIfNotExist)) return true;
+			if (TryGetArg(space, index, out value, createIfNotExist)) return true;
 		}
 		return false;
 	}
@@ -143,8 +145,8 @@ public static class DynSpaceHelper
 	public static bool ReturnFromFunc<T>(DynamicVariableSpace space, int returnIndex, string returnName, T value)
 	{
 		bool hadSpace = false;
-		string varName = $"Return_{returnIndex}";
-		if (ProtoFluxContextualActions.ReadNameFirst()) varName = $"Return_{returnName}";
+		string varName = $"Return_{returnName}";
+		if (ProtoFluxContextualActions.ReadIndexFirst()) varName = $"Return_{returnIndex}";
 		if (ReturnVariables.TryGetValue(space, out Dictionary<Type, IDynamicVariable>? thisSpaceVars))
 		{
 			hadSpace = true;

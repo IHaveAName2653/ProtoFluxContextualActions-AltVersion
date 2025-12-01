@@ -130,18 +130,31 @@ public class RecipeMakerDynOverride : DynOverride
 		{
 			case "AddRecipe":
 				{
-					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeSlot", out string recipeSlot)) return true;
+					bool varsExist = true;
+					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeSlot", out Slot recipeSlot) || recipeSlot == null;
+					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 1, "RecipeRootNode", out string recipeName) || recipeName == null;
+					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 2, "RecipeSlot", out Slot recipeRootNode) || recipeRootNode == null;
+					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 3, "RecipeSlot", out Type recipeType) || recipeType == null;
+					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 4, "RecipeSlot", out bool recipeIsOutput);
+					if (!varsExist) return true;
 					if (recipeSlot == null) return true;
-					var makerSpace = DynSpaceHelper.TryGetSpace(target, "FluxRecipeMaker", true);
-					FluxRecipeConfig.RecipeFromSlot(hierarchy, makerSpace);
+					if (string.IsNullOrEmpty(recipeName)) return true;
+					if (recipeRootNode == null) return true;
+					if (recipeType == null) return true;
+
+
+					var recipeVarProvider = new MakerDynVars(recipeName, recipeIsOutput, recipeRootNode, recipeType);
+					FluxRecipeConfig.RecipeFromSlot(recipeSlot, recipeVarProvider);
 					return false;
 				}
 			case "DetermineRoot":
 				{
-					if (hierarchy == null) return true;
-					var makerSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxRecipeMaker");
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "TargetNode", out Slot targetNode)) return true;
+					if (targetNode == null) return true;
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 1, "VariableRoot", out Slot varRoot)) return true;
+					var makerSpace = DynSpaceHelper.TryGetSpace(varRoot, "FluxRecipeMaker");
 					if (makerSpace == null) return true;
-					ProtoFluxNode node = hierarchy.GetComponent<ProtoFluxNode>();
+					ProtoFluxNode node = targetNode.GetComponent<ProtoFluxNode>();
 					if (node == null) return true;
 					Type nodeType = node.NodeType;
 					if (!nodeType.IsGenericType) return true;
@@ -163,28 +176,26 @@ public class RecipeMakerDynOverride : DynOverride
 					}
 					else isOutput = true;
 					DynSpaceHelper.TryWrite(makerSpace, "RecipeIsOutput", isOutput, true);
-					DynSpaceHelper.TryWrite(makerSpace, "RecipeRootNode", hierarchy, true);
+					DynSpaceHelper.TryWrite(makerSpace, "RecipeRootNode", targetNode, true);
 					DynSpaceHelper.TryWrite(makerSpace, "RecipeType", genericType, true);
 					break;
 				}
 			case "BuildToSlot":
 				{
-					if (string.IsNullOrEmpty(variable)) return true;
-					if (hierarchy == null) return true;
-					var constructSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxConstructData", true);
-					if (DynSpaceHelper.TryRead(constructSpace, "Tool", out ProtoFluxTool fluxTool, true))
-					{
-						if (fluxTool == null) return true;
-						FluxRecipe? targetRecipe = FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable);
-						if (targetRecipe == null) return true;
-						FluxRecipeConfig.ConstructFluxRecipe(
-							fluxTool,
-							null,
-							targetRecipe.Value, true, hierarchy
-						);
-						return false;
-					}
-					break;
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeName", out string targetRecipe)) return true;
+					if (string.IsNullOrEmpty(targetRecipe)) return true;
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 1, "TargetParent", out Slot targetParent)) return true;
+					if (targetParent == null) return true;
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 2, "FluxTool", out ProtoFluxTool fluxTool)) return true;
+					if (fluxTool == null) return true;
+					FluxRecipe? ActualRecipe = FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == targetRecipe);
+					if (targetRecipe == null) return true;
+					FluxRecipeConfig.ConstructFluxRecipe(
+						fluxTool,
+						null,
+						ActualRecipe.Value, true, targetParent
+					);
+					return false;
 				}
 		}
 
@@ -238,7 +249,14 @@ public class LegacyRecipeStringInterface : DynOverride
 		{
 			if (hierarchy == null) return true;
 			var makerSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxRecipeMaker", true);
-			FluxRecipeConfig.RecipeFromSlot(hierarchy, makerSpace);
+			bool varsExist = true;
+			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeName", out string recipeName) && !string.IsNullOrEmpty(recipeName);
+			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeRootNode", out Slot recipeRootNode) && recipeRootNode != null;
+			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeType", out Type recipeType) && recipeType != null;
+			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeIsOutput", out bool recipeIsOutput);
+			if (!varsExist) return true;
+			var recipeVarProvider = new MakerDynVars(recipeName, recipeIsOutput, recipeRootNode, recipeType);
+			FluxRecipeConfig.RecipeFromSlot(hierarchy, recipeVarProvider);
 			return false;
 		}
 		if (target == "DetermineRoot")

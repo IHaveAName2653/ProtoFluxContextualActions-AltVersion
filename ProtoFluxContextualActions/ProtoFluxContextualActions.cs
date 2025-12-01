@@ -48,7 +48,7 @@ public class ProtoFluxContextualActions : ResoniteMod
 	public static readonly ModConfigurationKey<Key> PrimaryKey = new ModConfigurationKey<Key>("Primary Key", "What key to use for 'opposite' primary", () => Key.Tab);
 
 	[AutoRegisterConfigKey]
-	public static readonly ModConfigurationKey<bool> ArgsUseNameFirst = new ModConfigurationKey<bool>("Arg Name First", "If DynImp arguments use Names before index", () => false);
+	public static readonly ModConfigurationKey<bool> ArgsUseIndexFirst = new ModConfigurationKey<bool>("Arg Index First", "If DynImp arguments use Index before Names", () => false);
 
 	public static T GetConfig<T>(ModConfigurationKey<T> key, T Default)
 	{
@@ -77,9 +77,9 @@ public class ProtoFluxContextualActions : ResoniteMod
 	{
 		return GetConfig(PrimaryKey, Key.LeftShift);
 	}
-	public static bool ReadNameFirst()
+	public static bool ReadIndexFirst()
 	{
-		return GetConfig(ArgsUseNameFirst, false);
+		return GetConfig(ArgsUseIndexFirst, false);
 	}
 
 	private static readonly Dictionary<string, ModConfigurationKey<bool>> patchCategoryKeys = [];

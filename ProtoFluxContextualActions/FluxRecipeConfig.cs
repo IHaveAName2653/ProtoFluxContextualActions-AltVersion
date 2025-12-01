@@ -328,16 +328,14 @@ public static class FluxRecipeConfig
 		});
 	}
 
-	public static void RecipeFromSlot(Slot target, DynamicVariableSpace dynVars)
+	public static void RecipeFromSlot(Slot target, MakerDynVars dynVars)
 	{
 		if (target.ChildrenCount == 0) return;
 
-		bool allVarsExist = true;
-		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeName", out string recipeName, true);
-		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeIsOutput", out bool recipeIsOutput, true);
-		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeRootNode", out Slot recipeRootSlot, true);
-		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeType", out Type recipeType, true);
-		if (!allVarsExist) return;
+		string recipeName = dynVars.recipeName;
+		bool recipeIsOutput = dynVars.isOutput;
+		Slot recipeRootSlot = dynVars.rootNode;
+		Type recipeType = dynVars.rootType;
 
 
 		if (string.IsNullOrEmpty(recipeName)) return;
@@ -489,4 +487,12 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 	public List<byte3> NodeConnections = connections;
 
 	public object? ObjectData = extraData;
+}
+
+public struct MakerDynVars(string recipeName, bool isOutput, Slot rootNode, Type rootType)
+{
+	public string recipeName = recipeName;
+	public bool isOutput = isOutput;
+	public Slot rootNode = rootNode;
+	public Type rootType = rootType;
 }
