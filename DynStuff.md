@@ -7,6 +7,7 @@ Dynamic impulses are hooked into with this mod, and if the right tag is used, th
 There are 2 different ways to call a function:
 - Invoke_[Method]
 - Invoke (DynVar<string> "DynHooks/Method")
+
 From there, you must provide some dynamic variables.\
 Anything that comes from impulse hooks will *always* use DynHooks/[variable].\
 DynVar<string> "Function" controls what function you call within the selected method.\
@@ -57,6 +58,7 @@ Will make a recipe from the provided slots, which are:
 - DynVar<Slot> 2 "RecipeRootNode": The origin node for the recipe, which is where it creates.
 - DynVar<Type> 3 "RecipeType": The type of input/output that this recipe can spawn from
 - DynVar<bool> 4 "RecipeIsOutput": If the recipe comes from an output proxy. false is input proxy
+- DynVar<colorX> 5 "RecipeColor" (Optional): The color to have the recipe be in the context menu. null/undefined defaults to light grey
 If everything is properly provided, you will have a recipe to use whenever, wherever
 ### "DetermineRoot"
 Has no return.\
