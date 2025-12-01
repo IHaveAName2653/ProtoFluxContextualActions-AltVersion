@@ -8,6 +8,7 @@ using ProtoFlux.Runtimes.Execution;
 using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFluxContextualActions.Attributes;
 using ProtoFluxContextualActions.Extensions;
+using ProtoFluxContextualActions.Utils;
 using ProtoFluxContextualActions.Utils.ProtoFlux;
 using Renderite.Shared;
 using System;
@@ -17,7 +18,7 @@ using System.Runtime.CompilerServices;
 
 namespace ProtoFluxContextualActions.Patches;
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.Update))]
-[HarmonyPatchCategory("ProtoFluxTool Contextual Swap Actions"), TweakCategory("Adds 'Contextual Swapping Actions' to the ProtoFlux Tool. Double pressing secondary pointing at a node with protoflux tool will be open a context menu of actions to swap the node for another node.", defaultValue: true)] // unstable, disable by default
+[HarmonyPatchCategory("ProtoFluxTool Contextual Swap Actions"), TweakCategory("Adds 'Contextual Swapping Actions' to the ProtoFlux Tool. Double pressing secondary pointing at a node with protoflux tool will open a context menu of actions to swap the node for another node.", defaultValue: true)] // unstable, disable by default
 internal static partial class ContextualSwapActionsPatch
 {
 	// TODO: This can be replaced in the future with flags or a combination of the three automatically.
@@ -280,7 +281,6 @@ internal static partial class ContextualSwapActionsPatch
 			.. VariableStoreNodesGroupItems(context),
 			.. ValueRelayGroupItems(context),
 			.. ObjectRelayGroupItems(context),
-			.. ValueComparisonBinaryOperatorGroupItems(context),
 			.. DeltaTimeOperationGroupItems(context),
 			.. EnumShiftGroupItems(context),
 			.. NullCoalesceGroupItems(context),
@@ -299,9 +299,17 @@ internal static partial class ContextualSwapActionsPatch
 			.. SinCosSwapGroup(context),
 			.. SampleSpatialVariableGroupItems(context),
 			.. KeyStateGroupItems(context),
-			.. ObjectComparisonBinaryOperatorGroupItems(context),
+			.. FireOnBoolGroupItems(context),
+			.. WriteGroupItems(context),
 			.. LerpGroupItems(context),
 			.. DynamicImpulseGroupItems(context),
+			.. IsNullGroupItemsGroupItems(context),
+			.. BinaryComparisonOperatorGroupItems(context),
+			.. BooleanVectorToBoolOperationsGroupItems(context),
+			.. ShiftRotationOperationsGroupItems(context),
+			.. SlotChildGroupItems(context),
+			.. GetSlotActiveGroupItems(context),
+			.. RepeatGroupItems(context),
 		];
 
 		foreach (var menuItem in menuItems)
@@ -313,6 +321,28 @@ internal static partial class ContextualSwapActionsPatch
 	#region Utils
 	internal static string FormatMultiName(Type match) =>
 		$"{NodeMetadataHelper.GetMetadata(match).Name} (Multi)";
+
+	internal static IEnumerable<MenuItem> MatchNonGenericTypes(ICollection<Type> types, Type type)
+	{
+		if (types.Contains(type))
+		{
+			foreach (var match in types)
+			{
+				yield return new MenuItem(match);
+			}
+		}
+	}
+
+	internal static IEnumerable<MenuItem> MatchGenericTypes(ISet<Type> types, Type type)
+	{
+		if (TypeUtils.TryGetGenericTypeDefinition(type, out var genericType) && types.Contains(genericType))
+		{
+			foreach (var match in types)
+			{
+				yield return new MenuItem(match.MakeGenericType(type.GenericTypeArguments));
+			}
+		}
+	}
 
 	internal static bool TryGetSwap(BiDictionary<Type, Type> swaps, Type nodeType, out Type match) =>
 		swaps.TryGetSecond(nodeType, out match) || swaps.TryGetFirst(nodeType, out match);

@@ -37,6 +37,22 @@ static class PsuedoGenericTypesHelper
 		.. psuedoGenerics.XOR_Multi,
 	];
 
+	public static PsuedoGenerics BooleanVectorToBoolOperations(this PsuedoGenericTypes psuedoGenerics) =>
+	[
+		.. psuedoGenerics.Any,
+		.. psuedoGenerics.All,
+		.. psuedoGenerics.None,
+		.. psuedoGenerics.XorElements
+	];
+
+	public static PsuedoGenerics ShiftRotationOperations(this PsuedoGenericTypes psuedoGenerics) =>
+	[
+		.. psuedoGenerics.ShiftLeft,
+		.. psuedoGenerics.ShiftRight,
+		.. psuedoGenerics.RotateLeft,
+		.. psuedoGenerics.RotateRight
+	];
+
 	public static PsuedoGenerics AvgGroup(this PsuedoGenericTypes psuedoGenerics) =>
 	[
 		.. psuedoGenerics.Avg,
@@ -69,5 +85,13 @@ static class PsuedoGenericTypesHelper
 	public static PsuedoGenerics SqrtGroup(this PsuedoGenericTypes psuedoGenerics) =>
 	[
 		.. psuedoGenerics.Sqrt,
+	];
+
+	public static PsuedoGenerics ComparisonNodes(this PsuedoGenericTypes psuedoGenerics) =>
+	[
+	  .. psuedoGenerics.LessThan,
+	  .. psuedoGenerics.LessOrEqual,
+	  .. psuedoGenerics.GreaterThan,
+	  .. psuedoGenerics.GreaterOrEqual,
 	];
 }

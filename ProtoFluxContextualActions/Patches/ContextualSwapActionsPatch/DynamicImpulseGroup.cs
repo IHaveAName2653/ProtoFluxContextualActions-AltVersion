@@ -26,6 +26,9 @@ static partial class ContextualSwapActionsPatch
 			yield return new MenuItem(typeof(DynamicImpulseReceiver));
 			yield return new MenuItem(typeof(DynamicImpulseTrigger));
 
+			yield return new MenuItem(typeof(AsyncDynamicImpulseReceiver));
+			yield return new MenuItem(typeof(AsyncDynamicImpulseTrigger));
+
 			Type? target = null;
 			if (context.proxy is ProtoFluxInputProxy)
 			{
@@ -59,6 +62,18 @@ static partial class ContextualSwapActionsPatch
 				new NodeTypeRecord(typeof(DynamicImpulseTriggerWithObject<>), null, null),
 			]);
 			yield return new(variableInput2);
+
+			var variableInput3 = GetNodeForType(target, [
+				new NodeTypeRecord(typeof(AsyncDynamicImpulseReceiverWithValue<>), null, null),
+				new NodeTypeRecord(typeof(AsyncDynamicImpulseReceiverWithObject<>), null, null),
+			]);
+			yield return new(variableInput3);
+
+			var variableInput4 = GetNodeForType(target, [
+				new NodeTypeRecord(typeof(AsyncDynamicImpulseTriggerWithValue<>), null, null),
+				new NodeTypeRecord(typeof(AsyncDynamicImpulseTriggerWithObject<>), null, null),
+			]);
+			yield return new(variableInput4);
 		}
 	}
 }

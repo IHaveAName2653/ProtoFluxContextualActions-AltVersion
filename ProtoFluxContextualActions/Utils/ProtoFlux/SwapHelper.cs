@@ -58,16 +58,29 @@ public static class SwapHelper
 		}
 	}
 
+	internal static Dictionary<(Type, Type), (string FromName, string ToName)[]> ImpulseMap = new()
+	{
+		{(typeof(ValueWrite<>), typeof(ValueWriteLatch<>)), [("OnWritten", "OnSet")]},
+		{(typeof(ValueWrite<,>), typeof(ValueWriteLatch<,>)), [("OnWritten", "OnSet")]},
+		{(typeof(ObjectWrite<>), typeof(ObjectWriteLatch<>)), [("OnWritten", "OnSet")]},
+		{(typeof(ObjectWrite<,>), typeof(ObjectWriteLatch<,>)), [("OnWritten", "OnSet")]},
+	};
+
+	internal static bool TryGetImpulseMap((Type, Type) typeTuple, [MaybeNullWhen(false)] out (string FromName, string ToName)[] elementMap) =>
+		TryGetTypeTupleMapping(ImpulseMap, typeTuple, out elementMap);
+
 
 	internal static void TransferImpulses(INode from, INode to, bool tryByIndex = false)
 	{
+		var typeTuple = (from.GetType().GetGenericTypeDefinitionOrSameType(), to.GetType().GetGenericTypeDefinitionOrSameType());
+		TryGetImpulseMap(typeTuple, out var elementMap);
+		var remap = elementMap?.ToDictionary();
+
 		foreach (var element in from.AllImpulseElements())
 		{
-			var toImpulse = to.GetImpulseByName(element.DisplayName);
-			if (toImpulse.HasValue)
+			if (to.GetImpulseByName(remap?.GetValueOrDefault(element.DisplayName) ?? element.DisplayName) is ImpulseElement toImpulse)
 			{
-				var impulse = toImpulse.Value;
-				impulse.Target = element.Target;
+				toImpulse.Target = element.Target;
 			}
 		}
 
@@ -111,14 +124,14 @@ public static class SwapHelper
 	}
 
 	internal static Dictionary<(Type, Type), (string FromName, string ToName)[]> OutputMap = new() {
-	{(typeof(For), typeof(RangeLoopInt)), [("Iteration", "Current")]},
-	{(typeof(ValueNegate<>), typeof(ValuePlusMinus<>)), [("*", "Minus")]},
-	{(typeof(SampleValueSpatialVariable<>), typeof(SampleMinMaxSpatialVariable<>)), [("*", "Max")]},
-	{(typeof(SampleNumericSpatialVariable<>), typeof(SampleMinMaxSpatialVariable<>)), [("*", "Max")]},
-	{(typeof(SampleValueSpatialVariable<>), typeof(SampleSpatialVariablePartialDerivative<>)), [("*", "X")]},
-	{(typeof(SampleNumericSpatialVariable<>), typeof(SampleSpatialVariablePartialDerivative<>)), [("*", "X")]},
-	{(typeof(SampleMinMaxSpatialVariable<>), typeof(SampleSpatialVariablePartialDerivative<>)), [("Max", "X")]},
-  };
+		{(typeof(For), typeof(RangeLoopInt)), [("Iteration", "Current")]},
+		{(typeof(ValueNegate<>), typeof(ValuePlusMinus<>)), [("*", "Minus")]},
+		{(typeof(SampleValueSpatialVariable<>), typeof(SampleMinMaxSpatialVariable<>)), [("*", "Max")]},
+		{(typeof(SampleNumericSpatialVariable<>), typeof(SampleMinMaxSpatialVariable<>)), [("*", "Max")]},
+		{(typeof(SampleValueSpatialVariable<>), typeof(SampleSpatialVariablePartialDerivative<>)), [("*", "X")]},
+		{(typeof(SampleNumericSpatialVariable<>), typeof(SampleSpatialVariablePartialDerivative<>)), [("*", "X")]},
+		{(typeof(SampleMinMaxSpatialVariable<>), typeof(SampleSpatialVariablePartialDerivative<>)), [("Max", "X")]},
+	};
 
 	internal static bool TryGetOutputMap((Type, Type) typeTuple, [MaybeNullWhen(false)] out (string FromName, string ToName)[] elementMap) =>
 		TryGetTypeTupleMapping(OutputMap, typeTuple, out elementMap);

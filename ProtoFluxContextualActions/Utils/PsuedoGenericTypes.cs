@@ -47,6 +47,9 @@ class PsuedoGenericTypes(World world)
 	public PsuedoGenerics NOR { get => field ??= MapTypes("NOR_"); }
 	public PsuedoGenerics XNOR { get => field ??= MapTypes("XNOR_"); }
 	public PsuedoGenerics XOR { get => field ??= MapTypes("XOR_"); }
+	public PsuedoGenerics NOT { get => field ??= MapTypes("NOT_"); }
+
+	public PsuedoGenerics Mask { get => field ?? MapTypes("Mask_"); }
 
 	public PsuedoGenerics AND_Multi { get => field ??= MapTypes("AND_Multi_"); }
 	public PsuedoGenerics OR_Multi { get => field ??= MapTypes("OR_Multi_"); }
@@ -54,6 +57,13 @@ class PsuedoGenericTypes(World world)
 	public PsuedoGenerics NOR_Multi { get => field ??= MapTypes("NOR_Multi_"); }
 	public PsuedoGenerics XNOR_Multi { get => field ??= MapTypes("XNOR_Multi_"); }
 	public PsuedoGenerics XOR_Multi { get => field ??= MapTypes("XOR_Multi_"); }
+
+
+
+	public PsuedoGenerics LessThan { get => field ??= MapTypes("LessThan_"); }
+	public PsuedoGenerics GreaterThan { get => field ??= MapTypes("GreaterThan_"); }
+	public PsuedoGenerics LessOrEqual { get => field ??= MapTypes("LessOrEqual_"); }
+	public PsuedoGenerics GreaterOrEqual { get => field ??= MapTypes("GreaterOrEqual_"); }
 
 	public PsuedoGenerics Sin { get => field ??= MapTypes("Sin_"); }
 	public PsuedoGenerics Cos { get => field ??= MapTypes("Cos_"); }
@@ -75,6 +85,18 @@ class PsuedoGenericTypes(World world)
 	public PsuedoGenerics ComposeTRS { get => field ??= MapTypes("ComposeTRS_"); }
 	// public PsuedoGenerics Compose_Rotation { get => field ??= MapTypes("Compose_Rotation_"); }
 	// public PsuedoGenerics Compose_ScaleRotation { get => field ??= MapTypes("Compose_ScaleRotation_"); }
+
+	public PsuedoGenerics ShiftLeft { get => field ??= MapTypes("ShiftLeft_"); }
+	public PsuedoGenerics ShiftRight { get => field ??= MapTypes("ShiftRight_"); }
+	public PsuedoGenerics RotateLeft { get => field ??= MapTypes("RotateLeft_"); }
+	public PsuedoGenerics RotateRight { get => field ??= MapTypes("RotateRight_"); }
+
+	public PsuedoGenerics All { get => field ??= MapTypes("All_"); }
+	public PsuedoGenerics Any { get => field ??= MapTypes("Any_"); }
+	public PsuedoGenerics None { get => field ??= MapTypes("None_"); }
+	public PsuedoGenerics XorElements { get => field ??= MapTypes("XorElements_"); }
+
+	public PsuedoGenerics Repeat01 { get => field ??= MapTypes("Repeat01_"); }
 
 	public PsuedoGenerics PackTangentPoint
 	{

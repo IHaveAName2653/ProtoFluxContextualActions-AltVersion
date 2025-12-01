@@ -87,7 +87,10 @@ internal static class ContextualSelectionActionsPatch
 	internal static bool GetSelectionActions(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
 	{
 		var elementProxy = ____currentProxy.Target;
-		var items = MenuItems(__instance).Take(24).ToList();
+		var items = MenuItems(__instance)
+			.Where(i => (i.binding ?? i.node).IsValidGenericType(validForInstantiation: true)) // this isn't great, we should instead catch errors before they propigate to here.
+			.Take(24)
+			.ToList();
 		// todo: pages / menu
 
 
@@ -213,6 +216,7 @@ internal static class ContextualSelectionActionsPatch
 			tool.StartTask(async () =>
 			{
 				var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
+				Traverse.Create(newMenu).Field<float?>("_speedOverride").Value = 10; // faster for better swiping
 				foreach (MenuItem item in items)
 				{
 					colorX targetColor = itemColor ?? item.node.GetTypeColor();
@@ -228,6 +232,7 @@ internal static class ContextualSelectionActionsPatch
 			tool.StartTask(async () =>
 			{
 				var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
+				Traverse.Create(newMenu).Field<float?>("_speedOverride").Value = 10; // faster for better swiping
 				foreach (FluxRecipeConfig.PartialMenuItem item in items)
 				{
 					var label = (LocaleString)item.DisplayName;
@@ -343,7 +348,9 @@ internal static class ContextualSelectionActionsPatch
 
 			if (!doConnect) return;
 		}
-		addedNode.TryConnectImpulse(impulseProxy.NodeImpulse.Target, addedNode.GetOperation(0), undoable: true);
+
+		var operation = addedNode.NodeOperationCount > 0 ? addedNode.GetOperation(0) : addedNode.GetOperationList(0).GetElement(0) as INodeOperation;
+		addedNode.TryConnectImpulse(impulseProxy.NodeImpulse.Target, operation, undoable: true);
 	}
 	static void ProcessOperationProxyItem(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy, MenuItem item, ProtoFluxNode addedNode)
 	{
@@ -368,6 +375,7 @@ internal static class ContextualSelectionActionsPatch
 		var target = _currentProxy?.Target;
 
 		foreach (var item in GeneralNumericOperationMenuItems(target)) yield return item;
+		foreach (var item in GeneralObjectOperationMenuItems(target)) yield return item;
 
 		if (target is ProtoFluxInputProxy inputProxy)
 		{
@@ -401,6 +409,7 @@ internal static class ContextualSelectionActionsPatch
 		yield return new MenuItem(typeof(Sequence), group: "Impulse");
 		yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 		yield return new MenuItem(typeof(StartAsyncTask), group: "Impulse");
+		yield return new MenuItem(typeof(ImpulseDemultiplexer), name: "Impulse Demultiplex", group: "Selection");
 
 		yield return new MenuItem(typeof(DataModelBooleanToggle), group: "Variables");
 
@@ -438,6 +447,11 @@ internal static class ContextualSelectionActionsPatch
 		{
 			yield return new MenuItem(typeof(AttachTexture2D), group: "Assets");
 			yield return new MenuItem(typeof(AttachSprite), group: "Assets");
+		}
+
+		else if (nodeType == typeof(ImpulseDemultiplexer))
+		{
+			yield return new MenuItem(typeof(ImpulseMultiplexer), name: "Impulse Multiplex", group: "Selection");
 		}
 
 		switch (impulseProxy.ImpulseType.Value)
@@ -592,6 +606,19 @@ internal static class ContextualSelectionActionsPatch
 		}
 	}
 
+	internal static IEnumerable<MenuItem> GeneralObjectOperationMenuItems(ProtoFluxElementProxy? target)
+	{
+		if (target is ProtoFluxOutputProxy { OutputType.Value: var outputType } && !outputType.IsUnmanaged())
+		{
+			var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(outputType));
+
+			if (coder.Property<bool>("SupportsComparison").Value)
+			{
+				yield return new MenuItem(typeof(ObjectEquals<>).MakeGenericType(outputType), group: "Generic");
+			}
+		}
+	}
+
 	private static Type? GetIVariableValueType(Type type)
 	{
 		if (TypeUtils.MatchInterface(type, typeof(IVariable<,>), out var varType))
@@ -609,7 +636,9 @@ internal static class ContextualSelectionActionsPatch
 	/// <returns></returns>
 	internal static IEnumerable<MenuItem> OutputMenuItems(ProtoFluxOutputProxy outputProxy)
 	{
+		var world = outputProxy.World;
 		var nodeType = outputProxy.Node.Target.NodeType;
+		var psuedoGenericTypes = world.GetPsuedoGenericTypesForWorld();
 		var outputType = outputProxy.OutputType.Value;
 		var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(outputType));
 
@@ -623,11 +652,6 @@ internal static class ContextualSelectionActionsPatch
 
 		//if (coder.Property<bool>("SupportsComparison").Value)
 		//{
-		var equalsNode = GetNodeForType(outputType, [
-			new NodeTypeRecord(typeof(ValueEquals<>), null, null),
-			new NodeTypeRecord(typeof(ObjectEquals<>), null, null),
-		]);
-		yield return new MenuItem(equalsNode, group: "Generic");
 		var firstMatchNode = GetNodeForType(outputType, [
 			new NodeTypeRecord(typeof(IndexOfFirstValueMatch<>), null, null),
 			new NodeTypeRecord(typeof(IndexOfFirstObjectMatch<>), null, null),
@@ -679,6 +703,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(FindChildByTag), group: "Slot Operations"); // use tag here because it has less inputs which fits better when going to swap.
 			yield return new MenuItem(typeof(GetSlotName), group: "Slot Info");
 			yield return new MenuItem(typeof(GetObjectRoot), group: "Slot Info");
+			yield return new MenuItem(typeof(GetSlotActive), group: "Slot Info");
 			yield return new MenuItem(typeof(GetActiveUser), group: "Slot Info");
 
 			yield return new MenuItem(typeof(DuplicateSlot), group: "Slot Operations");
@@ -849,9 +874,24 @@ internal static class ContextualSelectionActionsPatch
 		else if (outputType == typeof(bool))
 		{
 			yield return new MenuItem(typeof(If), group: "Impulse");
-			yield return new MenuItem(typeof(AND_Bool), group: ProxyTypeName);
-			yield return new MenuItem(typeof(OR_Bool), group: ProxyTypeName);
-			yield return new MenuItem(typeof(NOT_Bool), group: ProxyTypeName);
+			//yield return new MenuItem(typeof(AND_Bool), group: ProxyTypeName);
+			//yield return new MenuItem(typeof(OR_Bool), group: ProxyTypeName);
+			//yield return new MenuItem(typeof(NOT_Bool), group: ProxyTypeName);
+		}
+		if (outputType == typeof(bool) || outputType == typeof(bool2) || outputType == typeof(bool3) || outputType == typeof(bool4))
+		{
+			yield return new(psuedoGenericTypes.AND.First(n => n.Types.First() == outputType).Node, group: "Bool Logic");
+			yield return new(psuedoGenericTypes.OR.First(n => n.Types.First() == outputType).Node, group: "Bool Logic");
+			yield return new(psuedoGenericTypes.NOT.First(n => n.Types.First() == outputType).Node, group: "Bool Logic");
+		}
+
+		if (outputType == typeof(bool2) || outputType == typeof(bool3) || outputType == typeof(bool4))
+		{
+			yield return new(psuedoGenericTypes.All.First(n => n.Types.First() == outputType).Node, group: "Bool Logic");
+			yield return new(psuedoGenericTypes.Any.First(n => n.Types.First() == outputType).Node, group: "Bool Logic");
+			yield return new(psuedoGenericTypes.None.First(n => n.Types.First() == outputType).Node, group: "Bool Logic");
+			// yield return new(psuedoGenericTypes.XorElements.First(n => n.Types.First() == outputType).Node);
+			yield return new(psuedoGenericTypes.Mask.First(n => n.Types.First() == outputType).Node, group: "Selection");
 		}
 
 		else if (outputType == typeof(bool2))

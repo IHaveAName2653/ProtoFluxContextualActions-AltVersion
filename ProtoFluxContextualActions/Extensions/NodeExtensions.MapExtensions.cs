@@ -3,6 +3,8 @@ using FrooxEngine.ProtoFlux;
 using FrooxEngine.Undo;
 using ProtoFlux.Core;
 using System.Collections.Generic;
+using Elements.Core;
+using System;
 
 namespace ProtoFluxContextualActions.Extensions;
 
@@ -41,7 +43,10 @@ public static class MapExtensions
 			{
 				var globalRef = to.GetGlobalRef(source.ElementIndex);
 				if (undoable) globalRef.CreateUndoPoint(forceNew: true);
-				globalRef.Target = (IWorldElement)to.Group.GetGlobal(source.Target.Index);
+				if (source.Target is Global global)
+				{
+					globalRef.Target = (IWorldElement)to.Group.GetGlobal(global.Index);
+				}
 			}
 			catch
 			{
