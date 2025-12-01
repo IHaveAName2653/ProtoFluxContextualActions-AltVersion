@@ -73,13 +73,15 @@ internal class FluxBindPatch
 
 		if (__instance.LocalUser.IsContextMenuOpen()) __instance.LocalUser.CloseContextMenu(__instance);
 
+		ProtoFluxElementProxy? proxy = ____currentProxy.Target;
+
 		// Call the functions
 		return targetFunction switch
 		{
 			// Select with dragged wire
-			Target.Select => ContextualSelectionActionsPatch.GetSelectionActions(__instance, ____currentProxy),
+			Target.Select => ContextualSelectionActionsPatch.GetSelectionActions(__instance, proxy),
 			// Swap highlighted node
-			Target.Swap => ContextualSwapActionsPatch.GetSwapActions(__instance, ____currentProxy),
+			Target.Swap => ContextualSwapActionsPatch.GetSwapActions(__instance, proxy),
 			// nodes from held reference type
 			Target.Reference => ContextualReferenceActionsPatch.GetReferenceActions(__instance),
 			// No function
