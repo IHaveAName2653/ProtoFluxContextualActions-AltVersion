@@ -58,6 +58,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using static ProtoFluxContextualActions.Utils.PsuedoGenericUtils;
 
 namespace ProtoFluxContextualActions.Patches;
@@ -84,120 +85,133 @@ internal static class ContextualSelectionActionsPatch
 		internal readonly string DisplayName => name ?? NodeMetadataHelper.GetMetadata(node).Name ?? node.GetNiceTypeName();
 	}
 
-	internal static bool GetSelectionActions(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
+	internal struct PageRootData(List<MenuItem> mainItems, List<FluxRecipeConfig.PartialMenuItem> customItems)
 	{
-		var elementProxy = ____currentProxy.Target;
-		var items = MenuItems(__instance)
+		internal List<MenuItem> mainItems = mainItems;
+		internal List<FluxRecipeConfig.PartialMenuItem> customItems = customItems;
+	}
+
+	internal static bool GetSelectionActions(ProtoFluxTool tool, SyncRef<ProtoFluxElementProxy> proxy)
+	{
+		var elementProxy = proxy.Target;
+		var items = MenuItems(tool)
 			.Where(i => (i.binding ?? i.node).IsValidGenericType(validForInstantiation: true)) // this isn't great, we should instead catch errors before they propigate to here.
-			.Take(24)
 			.ToList();
+		var customItems = FluxRecipeConfig.GetItems(tool, elementProxy).ToList();
 		// todo: pages / menu
+
+		var rootData = new PageRootData(items, customItems);
 
 
 		if (items.Count != 0)
 		{
-			__instance.StartTask(async () =>
-			{
-				var menu = await __instance.LocalUser.OpenContextMenu(__instance, __instance.Slot);
-				Traverse.Create(menu).Field<float?>("_speedOverride").Value = 10; // faster for better swiping
-
-				Dictionary<string, List<MenuItem>> sortedItems = [];
-				foreach (MenuItem item in items)
-				{
-					string groupName = "Unsorted";
-					if (item.group != null && !string.IsNullOrEmpty(item.group)) groupName = item.group;
-					if (sortedItems.TryGetValue(groupName, out var list))
-					{
-						list.Add(item);
-					}
-					else
-					{
-						sortedItems.Add(groupName, [item]);
-					}
-				}
-				switch (elementProxy)
-				{
-					case ProtoFluxInputProxy inputProxy:
-						{
-							if (sortedItems.Count <= 1)
-							{
-								AddMultipleItems(__instance, elementProxy, menu, inputProxy.InputType.Value.GetTypeColor(), items, ProcessInputProxyItem);
-								break;
-							}
-							else
-							{
-								foreach (var kv in sortedItems)
-								{
-									AddSubfolder(__instance, elementProxy, menu, kv.Key, colorX.White, inputProxy.InputType.Value.GetTypeColor(), kv.Value, ProcessInputProxyItem);
-								}
-								break;
-							}
-						}
-					case ProtoFluxOutputProxy outputProxy:
-						{
-							if (sortedItems.Count <= 1)
-							{
-								AddMultipleItems(__instance, elementProxy, menu, outputProxy.OutputType.Value.GetTypeColor(), items, ProcessOutputProxyItem);
-								break;
-							}
-							else
-							{
-								foreach (var kv in sortedItems)
-								{
-									AddSubfolder(__instance, elementProxy, menu, kv.Key, colorX.White, outputProxy.OutputType.Value.GetTypeColor(), kv.Value, ProcessOutputProxyItem);
-								}
-								break;
-							}
-						}
-					case ProtoFluxImpulseProxy impulseProxy:
-						{
-							if (sortedItems.Count <= 1)
-							{
-								AddMultipleItems(__instance, elementProxy, menu, null, items, ProcessImpulseProxyItem);
-								break;
-							}
-							else
-							{
-								foreach (var kv in sortedItems)
-								{
-									AddSubfolder(__instance, elementProxy, menu, kv.Key, colorX.White, null, kv.Value, ProcessImpulseProxyItem);
-								}
-								break;
-							}
-						}
-					case ProtoFluxOperationProxy operationProxy:
-						{
-							if (sortedItems.Count <= 1)
-							{
-								AddMultipleItems(__instance, elementProxy, menu, null, items, ProcessOperationProxyItem);
-								break;
-							}
-							else
-							{
-								foreach (var kv in sortedItems)
-								{
-									AddSubfolder(__instance, elementProxy, menu, kv.Key, colorX.White, null, kv.Value, ProcessOperationProxyItem);
-								}
-								break;
-							}
-						}
-					default:
-						throw new Exception("found items for unsupported protoflux contextual action type");
-				}
-
-				var customItems = FluxRecipeConfig.GetItems(__instance, elementProxy).Take(12).ToList();
-
-				if (customItems.Count != 0)
-				{
-					AddSubfolderCustom(__instance, elementProxy, menu, "Custom", colorX.LightGray, colorX.Orange, customItems);
-				}
-			});
+			CreateRootItems(tool, elementProxy, rootData);
 
 			return false;
 		}
 
 		return true;
 	}
+
+	private static void CreateRootItems(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy, PageRootData rootData)
+	{
+		List<MenuItem> items = rootData.mainItems;
+		List<FluxRecipeConfig.PartialMenuItem> customItems = rootData.customItems;
+
+		tool.StartTask(async () =>
+		{
+			var menu = await CreateContext(tool);
+
+			Dictionary<string, List<MenuItem>> sortedItems = [];
+			foreach (MenuItem item in items)
+			{
+				string groupName = "Unsorted";
+				if (item.group != null && !string.IsNullOrEmpty(item.group)) groupName = item.group;
+				if (sortedItems.TryGetValue(groupName, out var list))
+				{
+					list.Add(item);
+				}
+				else
+				{
+					sortedItems.Add(groupName, [item]);
+				}
+			}
+
+			Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode>? currentAction = null;
+			colorX? targetColor = null;
+
+			switch (elementProxy)
+			{
+				case ProtoFluxInputProxy inputProxy:
+					{
+						currentAction = ProcessInputProxyItem;
+						targetColor = inputProxy.InputType.Value.GetTypeColor();
+						break;
+					}
+				case ProtoFluxOutputProxy outputProxy:
+					{
+						currentAction = ProcessOutputProxyItem;
+						targetColor = outputProxy.OutputType.Value.GetTypeColor();
+						break;
+					}
+				case ProtoFluxImpulseProxy impulseProxy:
+					{
+						currentAction = ProcessImpulseProxyItem;
+						break;
+					}
+				case ProtoFluxOperationProxy operationProxy:
+					{
+						currentAction = ProcessOperationProxyItem;
+						break;
+					}
+				default:
+					throw new Exception("found items for unsupported protoflux contextual action type");
+			}
+
+			if (currentAction == null) return;
+
+			if (sortedItems.Count <= 1)
+			{
+				AddSubfolder(tool, elementProxy, menu, "Wire", colorX.White, targetColor, items, currentAction, rootData);
+			}
+			else
+			{
+				foreach (var kv in sortedItems)
+				{
+					AddSubfolder(tool, elementProxy, menu, kv.Key, colorX.White, null, kv.Value, currentAction, rootData);
+				}
+			}
+
+
+			if (customItems.Count != 0)
+			{
+				AddSubfolderCustom(tool, elementProxy, menu, "Custom", colorX.LightGray, colorX.Orange, customItems, rootData);
+			}
+		});
+	}
+
+	public const int MAX_PER_PAGE = 8;
+
+	// Source - https://stackoverflow.com/a
+	// Posted by JaredPar, modified by community. See post 'Timeline' for change history
+	// Retrieved 2025-12-01, License - CC BY-SA 4.0
+	// (didnt make myself because linq is weird and i wont wanna think about this)
+	public static List<List<T>> Split<T>(IList<T> source)
+	{
+		return source
+			.Select((x, i) => new { Index = i, Value = x })
+			.GroupBy(x => x.Index / MAX_PER_PAGE)
+			.Select(x => x.Select(v => v.Value).ToList())
+			.ToList();
+	}
+
+	private static async Task<ContextMenu> CreateContext(ProtoFluxTool tool)
+	{
+		var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
+		Traverse.Create(newMenu).Field<float?>("_speedOverride").Value = 10;
+		return newMenu;
+	}
+
 
 	private static void AddMenuFolder(ContextMenu menu, string folderName, colorX color, Action setup)
 	{
@@ -209,52 +223,139 @@ internal static class ContextualSelectionActionsPatch
 		};
 	}
 
-	private static void AddSubfolder(ProtoFluxTool tool, ProtoFluxElementProxy proxy, ContextMenu menu, string folderName, colorX color, colorX? itemColor, List<MenuItem> items, Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup)
+	private static void AddSubfolder(ProtoFluxTool tool, ProtoFluxElementProxy proxy, ContextMenu menu, string folderName, colorX color, colorX? itemColor, List<MenuItem> items, Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup, PageRootData rootData)
 	{
+		List<List<MenuItem>> PagedItems = Split(items);
 		AddMenuFolder(menu, folderName, color, () =>
 		{
-			tool.StartTask(async () =>
-			{
-				var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
-				Traverse.Create(newMenu).Field<float?>("_speedOverride").Value = 10; // faster for better swiping
-				foreach (MenuItem item in items)
-				{
-					colorX targetColor = itemColor ?? item.node.GetTypeColor();
-					AddMenuItem(tool, proxy, newMenu, targetColor, item, setup);
-				}
-			});
-		});
-	}
-	private static void AddSubfolderCustom(ProtoFluxTool tool, ProtoFluxElementProxy proxy, ContextMenu menu, string folderName, colorX color, colorX? itemColor, List<FluxRecipeConfig.PartialMenuItem> items)
-	{
-		AddMenuFolder(menu, folderName, color, () =>
-		{
-			tool.StartTask(async () =>
-			{
-				var newMenu = await tool.LocalUser.OpenContextMenu(tool, tool.Slot);
-				Traverse.Create(newMenu).Field<float?>("_speedOverride").Value = 10; // faster for better swiping
-				foreach (FluxRecipeConfig.PartialMenuItem item in items)
-				{
-					var label = (LocaleString)item.DisplayName;
-					var menuItem = menu.AddItem(in label, (Uri?)null, colorX.LightGray);
-					menuItem.Button.LocalPressed += (button, data) =>
-					{
-						item.onMenuPress(tool, proxy, item.recipe);
-						tool.LocalUser.CloseContextMenu(tool);
-						CleanupDraggedWire(tool);
-					};
-				}
-			});
+			RebuildPagedMenu(tool, proxy, color, itemColor, PagedItems, setup, 0, rootData);
 		});
 	}
 
-	private static void AddMultipleItems(ProtoFluxTool __instance, ProtoFluxElementProxy proxy, ContextMenu menu, colorX? color, List<MenuItem> items, Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup)
+	private static void RebuildPagedMenu(
+		ProtoFluxTool tool,
+		ProtoFluxElementProxy proxy,
+		colorX color,
+		colorX? itemColor,
+		List<List<MenuItem>> PagedItems,
+		Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup,
+		int page,
+		PageRootData rootData
+		)
 	{
-		foreach (var item in items)
+		tool.StartTask(async () =>
 		{
-			colorX targetColor = color ?? item.node.GetTypeColor();
-			AddMenuItem(__instance, proxy, menu, targetColor, item, setup);
-		}
+			var newMenu = await CreateContext(tool);
+			if (page == 0)
+			{
+				var label = (LocaleString)"Back";
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Red);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					tool.LocalUser.CloseContextMenu(tool);
+					CreateRootItems(tool, proxy, rootData);
+				};
+			}
+			if (page > 0)
+			{
+				var label = (LocaleString)"Previous Page";
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Orange);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					tool.LocalUser.CloseContextMenu(tool);
+					RebuildPagedMenu(tool, proxy, colorX.Orange, colorX.LightGray, PagedItems, setup, page - 1, rootData);
+				};
+			}
+			foreach (var item in PagedItems[page])
+			{
+				colorX targetColor = itemColor ?? item.node.GetTypeColor();
+				AddMenuItem(tool, proxy, newMenu, targetColor, item, setup);
+			}
+			if (PagedItems.Count - 1 > page)
+			{
+				var label = (LocaleString)"Next Page";
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Cyan);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					tool.LocalUser.CloseContextMenu(tool);
+					RebuildPagedMenu(tool, proxy, colorX.Cyan, colorX.LightGray, PagedItems, setup, page + 1, rootData);
+				};
+			}
+		});
+	}
+
+	private static void AddSubfolderCustom(
+		ProtoFluxTool tool,
+		ProtoFluxElementProxy proxy,
+		ContextMenu menu,
+		string folderName,
+		colorX color,
+		colorX? itemColor,
+		List<FluxRecipeConfig.PartialMenuItem> items,
+		PageRootData rootData)
+	{
+		List<List<FluxRecipeConfig.PartialMenuItem>> PagedItems = Split(items);
+
+		AddMenuFolder(menu, folderName, color, () =>
+		{
+			RebuildCustomPagedMenu(tool, proxy, color, itemColor, PagedItems, 0, rootData);
+		});
+	}
+
+	private static void RebuildCustomPagedMenu(
+		ProtoFluxTool tool,
+		ProtoFluxElementProxy proxy,
+		colorX color,
+		colorX? itemColor,
+		List<List<FluxRecipeConfig.PartialMenuItem>> PagedItems,
+		int page,
+		PageRootData rootData)
+	{
+		tool.StartTask(async () =>
+		{
+			var newMenu = await CreateContext(tool);
+			if (page == 0)
+			{
+				var label = (LocaleString)"Back";
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Red);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					tool.LocalUser.CloseContextMenu(tool);
+					CreateRootItems(tool, proxy, rootData);
+				};
+			}
+			if (page > 0)
+			{
+				var label = (LocaleString)"Previous Page";
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Orange);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					tool.LocalUser.CloseContextMenu(tool);
+					RebuildCustomPagedMenu(tool, proxy, colorX.Orange, colorX.LightGray, PagedItems, page - 1, rootData);
+				};
+			}
+			foreach (var item in PagedItems[page])
+			{
+				var label = (LocaleString)item.DisplayName;
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.LightGray);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					item.onMenuPress(tool, proxy, item.recipe);
+					tool.LocalUser.CloseContextMenu(tool);
+					CleanupDraggedWire(tool);
+				};
+			}
+			if (PagedItems.Count - 1 > page)
+			{
+				var label = (LocaleString)"Next Page";
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.Cyan);
+				menuItem.Button.LocalPressed += (button, data) =>
+				{
+					tool.LocalUser.CloseContextMenu(tool);
+					RebuildCustomPagedMenu(tool, proxy, colorX.Cyan, colorX.LightGray, PagedItems, page + 1, rootData);
+				};
+			}
+		});
 	}
 
 	private static void AddMenuItem(ProtoFluxTool __instance, ProtoFluxElementProxy proxy, ContextMenu menu, colorX color, MenuItem item, Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup)
@@ -916,6 +1017,7 @@ internal static class ContextualSelectionActionsPatch
 			yield return new MenuItem(typeof(Contains), group: "String Info");
 			yield return new MenuItem(typeof(Substring), group: "String Operations");
 			yield return new MenuItem(typeof(FormatString), group: "String Operations");
+			yield return new MenuItem(typeof(StripRTF_Tags), group: "String Operations");
 
 			yield return new MenuItem(typeof(ConcatenateString), group: "String Operations");
 		}

@@ -30,7 +30,7 @@ namespace ProtoFluxContextualActions;
 /// </summary>
 public class RecipeConfigDynOverride : DynOverride
 {
-	public override bool InvokeOverride(string FunctionName, Slot target, bool excludeDisabled, FrooxEngineContext context)
+	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
 		return true;
 	}
@@ -40,7 +40,7 @@ public class RecipeConfigDynOverride : DynOverride
 /// </summary>
 public class RecipeDataDynOverride : DynOverride
 {
-	public override bool InvokeOverride(string FunctionName, Slot target, bool excludeDisabled, FrooxEngineContext context)
+	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
 		return true;
 	}
@@ -51,7 +51,7 @@ public class RecipeDataDynOverride : DynOverride
 /// </summary>
 public class RecipeMakerDynOverride : DynOverride
 {
-	public override bool InvokeOverride(string FunctionName, Slot target, bool excludeDisabled, FrooxEngineContext context)
+	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
 		return true;
 	}
@@ -70,7 +70,7 @@ public class RecipeMakerDynOverride : DynOverride
 /// </summary>
 public class LegacyRecipeStringInterface : DynOverride
 {
-	public override bool InvokeOverride(string FunctionName, Slot hierarchy, bool excludeDisabled, FrooxEngineContext context)
+	public override bool InvokeOverride(string FunctionName, Slot hierarchy, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
 		string[] parts = FunctionName.Split("/");
 		string target = parts[0];

@@ -1,25 +1,9 @@
 ﻿using FrooxEngine;
 using FrooxEngine.ProtoFlux;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Elements.Core;
-using FrooxEngine.Undo;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ProtoFlux.Core;
-using ProtoFlux.Runtimes.Execution;
-using ProtoFlux.Runtimes.Execution.Nodes;
 using ProtoFlux.Runtimes.Execution.Nodes.Actions;
-using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots;
-using ProtoFluxContextualActions.Attributes;
-using ProtoFluxContextualActions.Utils;
-using System.IO;
-using System.IO.Compression;
-using System.Reflection;
-using System.Reflection.Metadata;
+using System.Linq;
 
 namespace ProtoFluxContextualActions;
 
@@ -27,9 +11,8 @@ namespace ProtoFluxContextualActions;
 
 public abstract class DynOverride
 {
-	public abstract bool InvokeOverride(string FunctionName, Slot target, bool excludeDisabled, FrooxEngineContext context);
+	public abstract bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context);
 }
-
 
 
 
@@ -60,14 +43,26 @@ public static class DynamicImpulseHook
 		if (string.IsNullOrEmpty(tag.Trim() ?? "")) return true;
 		// Determine if this is a legacy or new function.
 
-		string[] parts = tag.Split("_");
-		if (parts.Length > 1)
+		List<string> parts = [.. tag.Split("_")];
+		if (parts.Count > 1)
 		{
 			// This is a legacy function.
 			// What "space" is this?
-			if (LegacyOverrides.TryGetValue(parts[0], out DynOverride? targetImpulse))
+			string space = parts[0];
+			parts.RemoveAt(0);
+			if (LegacyOverrides.TryGetValue(space, out DynOverride? targetLegacyOverride))
 			{
-				return targetImpulse.InvokeOverride(parts[1], hierarchy, excludeDisabled, context);
+				return targetLegacyOverride.InvokeOverride(string.Join("_", parts), hierarchy, null, excludeDisabled, context);
+			}
+			return true;
+		}
+
+		if (Overrides.TryGetValue(tag, out DynOverride targetOverride))
+		{
+			DynamicVariableSpace argumentSpace = DynSpaceHelper.TryGetSpace(hierarchy, "DynHooks", true);
+			if (DynSpaceHelper.TryRead(argumentSpace, "Function", out string func, true))
+			{
+				return targetOverride.InvokeOverride(func, hierarchy, argumentSpace, excludeDisabled, context);
 			}
 		}
 
