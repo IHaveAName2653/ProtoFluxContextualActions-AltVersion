@@ -27,6 +27,17 @@ public class BindDynOverride : DynOverride
 {
 	public override bool InvokeOverride(string FunctionName, Slot hierarchy, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
+		switch (FunctionName)
+		{
+			case "GetBind":
+				return false;
+			case "AddBind":
+				return false;
+			case "ListBinds":
+				return false;
+			case "RemoveBind":
+				return false;
+		}
 		return true;
 	}
 }
