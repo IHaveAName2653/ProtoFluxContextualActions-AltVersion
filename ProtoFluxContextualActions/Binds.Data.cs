@@ -123,9 +123,9 @@ public class ProtoFluxToolData
 		bool DesktopMenuRight = input.GetKey(Key.T);
 		bool DesktopSecondaryLeft = input.GetKey(GetSecondaryKey());
 		bool DesktopSecondaryRight = input.GetKey(Key.R);
-		bool DesktopTriggerLeft = input.Mouse.MouseButton5.Held;
+		bool DesktopTriggerLeft = input.GetKey(GetPrimaryKey());
 		bool DesktopTriggerRight = input.Mouse.LeftButton.Held;
-		bool DesktopGripLeft = input.Mouse.MouseButton4.Held;
+		bool DesktopGripLeft = input.GetKey(GetGrabKey());
 		bool DesktopGripRight = input.Mouse.RightButton.Held;
 
 		Secondary.Update(VRSecondaryLeft, VRSecondaryRight, DesktopSecondaryLeft, DesktopSecondaryRight);
@@ -160,6 +160,14 @@ public class BindGetters
 	public static Key GetMenuKey()
 	{
 		return ProtoFluxContextualActions.GetMenuKey();
+	}
+	public static Key GetPrimaryKey()
+	{
+		return ProtoFluxContextualActions.GetPrimaryKey();
+	}
+	public static Key GetGrabKey()
+	{
+		return ProtoFluxContextualActions.GetGrabKey();
 	}
 }
 public enum ConditionState

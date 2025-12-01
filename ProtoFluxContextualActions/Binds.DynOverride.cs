@@ -29,6 +29,4 @@ public class BindDynOverride : DynOverride
 	{
 		return true;
 	}
-
-
 }

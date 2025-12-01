@@ -1,12 +1,9 @@
-﻿using FrooxEngine;
+﻿using Elements.Core;
+using FrooxEngine;
 using FrooxEngine.ProtoFlux;
-using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Elements.Core;
+using FrooxEngine.ProtoFlux.Runtimes.Execution;
 using FrooxEngine.Undo;
+using HarmonyLib;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ProtoFlux.Core;
@@ -16,10 +13,14 @@ using ProtoFlux.Runtimes.Execution.Nodes.Actions;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Slots;
 using ProtoFluxContextualActions.Attributes;
 using ProtoFluxContextualActions.Utils;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 
 
 namespace ProtoFluxContextualActions;
@@ -32,6 +33,69 @@ public class RecipeConfigDynOverride : DynOverride
 {
 	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
+		if (variableSpace == null) return true;
+		switch (FunctionName)
+		{
+			case "Get":
+				{
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeName", out string recipeName)) return true;
+					if (string.IsNullOrEmpty(recipeName)) return true;
+					DynSpaceHelper.ReturnFromFunc(variableSpace, 0, "RecipeData", FluxRecipeConfig.GetStringFor(recipeName));
+					return false;
+				}
+			case "GetAll":
+				{
+					DynSpaceHelper.ReturnFromFunc(variableSpace, 0, "AllRecipeData", FluxRecipeConfig.StringFromData());
+					return false;
+				}
+			case "GetAllNames":
+				{
+					DynSpaceHelper.ReturnFromFunc(variableSpace, 0, "AllNames", string.Join(",", FluxRecipeConfig.FluxRecipes.Select(recipe => recipe.RecipeName)));
+					return false;
+				}
+
+			case "AddRecipeString":
+				{
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeString", out string recipeData)) return true;
+					if (!string.IsNullOrEmpty(recipeData))
+					{
+						FluxRecipeConfig.LoadSingleString(recipeData);
+						return false;
+					}
+					return true;
+				}
+			case "AddMultiple":
+				{
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeStringArray", out string recipeArray)) return true;
+					if (!string.IsNullOrEmpty(recipeArray))
+					{
+						FluxRecipeConfig.LoadMultiString(recipeArray);
+						return false;
+					}
+					return true;
+				}
+
+
+			case "RemoveRecipe":
+				{
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeStringArray", out string targetRecipe)) return true;
+					if (string.IsNullOrEmpty(targetRecipe)) return true;
+					FluxRecipeConfig.OnRemoveItem(targetRecipe);
+					return false;
+				}
+
+			case "SetAll":
+				{
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "AllRecipes", out string recipeBlock)) return true;
+					if (!string.IsNullOrEmpty(recipeBlock))
+					{
+						FluxRecipeConfig.LoadFromString(recipeBlock);
+						return false;
+					}
+					return true;
+				}
+
+		}
 		return true;
 	}
 }
@@ -42,6 +106,53 @@ public class RecipeDataDynOverride : DynOverride
 {
 	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
+		if (variableSpace == null) return true;
+		switch (FunctionName)
+		{
+			case "Reload":
+				FluxRecipeConfig.ReadFromConfig();
+				return false;
+			case "EnsureVars":
+				{
+					DynSpaceHelper.EnsureVariableExists<string>(variableSpace, "TargetSpace");
+					DynSpaceHelper.EnsureVariableExists<Slot>(variableSpace, "TargetSlot");
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "TargetSpace", out string space)) return true;
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 1, "TargetSlot", out Slot slot)) return true;
+					if (string.IsNullOrEmpty(space)) return true;
+					if (slot == null) return true;
+
+
+					if (space == "Data")
+					{
+						var recipeSpace = DynSpaceHelper.TryGetSpace(slot, "FluxRecipeData", true);
+						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "ThisRecipe");
+						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllRecipes");
+						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllNames");
+						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllRecipeString");
+						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "Recipe");
+						return false;
+					}
+					if (space == "Maker")
+					{
+						var makerSpace = DynSpaceHelper.TryGetSpace(slot, "FluxRecipeMaker", true);
+						DynSpaceHelper.EnsureVariableExists<bool>(makerSpace, "RecipeIsOutput");
+						DynSpaceHelper.EnsureVariableExists<Slot>(makerSpace, "RecipeRootNode");
+						DynSpaceHelper.EnsureVariableExists<Type>(makerSpace, "RecipeType");
+						DynSpaceHelper.EnsureVariableExists<string>(makerSpace, "RecipeName");
+						return false;
+					}
+					if (space == "Construct")
+					{
+						var constructSpace = DynSpaceHelper.TryGetSpace(slot, "FluxConstructData", true);
+						DynSpaceHelper.EnsureVariableExists<ProtoFluxTool>(constructSpace, "Tool");
+						return false;
+					}
+
+
+					return true;
+				}
+
+		}
 		return true;
 	}
 }
@@ -53,6 +164,7 @@ public class RecipeMakerDynOverride : DynOverride
 {
 	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
+		if (variableSpace == null) return true;
 		return true;
 	}
 }

@@ -85,7 +85,7 @@ public class Binds
 			//if (data.Menu.Primary.IsHeld && !data.Secondary.Opposite.currentlyPressed) return Target.Selection;
 			if (data.Secondary.Opposite.IsHeld && data.Menu.Primary.pressedThisUpdate) return Target.Swap;
 
-			if (data.Secondary.Opposite.IsHeld && data.Primary.Opposite.pressedThisUpdate) return Target.Reference;
+			if (data.GrabbedReference != null && data.Secondary.Opposite.IsHeld && data.Primary.Opposite.pressedThisUpdate) return Target.Reference;
 
 			if (data.Secondary.Opposite.currentlyPressed && data.Primary.Opposite.pressedThisUpdate) return Target.Swap;
 

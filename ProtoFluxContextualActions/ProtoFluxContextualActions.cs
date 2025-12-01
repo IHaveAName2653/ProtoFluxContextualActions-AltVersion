@@ -42,6 +42,13 @@ public class ProtoFluxContextualActions : ResoniteMod
 	public static readonly ModConfigurationKey<Key> SecondaryKey = new ModConfigurationKey<Key>("Secondary Key", "What key to use for 'opposite' secondary", () => Key.BackQuote);
 	[AutoRegisterConfigKey]
 	public static readonly ModConfigurationKey<Key> MenuKey = new ModConfigurationKey<Key>("Menu Key", "What key to use for 'opposite' menu", () => Key.LeftShift);
+	[AutoRegisterConfigKey]
+	public static readonly ModConfigurationKey<Key> GrabKey = new ModConfigurationKey<Key>("Grab Key", "What key to use for 'opposite' grab", () => Key.LeftAlt);
+	[AutoRegisterConfigKey]
+	public static readonly ModConfigurationKey<Key> PrimaryKey = new ModConfigurationKey<Key>("Primary Key", "What key to use for 'opposite' primary", () => Key.Tab);
+
+	[AutoRegisterConfigKey]
+	public static readonly ModConfigurationKey<bool> ArgsUseNameFirst = new ModConfigurationKey<bool>("Arg Name First", "If DynImp arguments use Names before index", () => false);
 
 	public static T GetConfig<T>(ModConfigurationKey<T> key, T Default)
 	{
@@ -61,6 +68,18 @@ public class ProtoFluxContextualActions : ResoniteMod
 	public static Key GetMenuKey()
 	{
 		return GetConfig(MenuKey, Key.LeftShift);
+	}
+	public static Key GetGrabKey()
+	{
+		return GetConfig(GrabKey, Key.LeftShift);
+	}
+	public static Key GetPrimaryKey()
+	{
+		return GetConfig(PrimaryKey, Key.LeftShift);
+	}
+	public static bool ReadNameFirst()
+	{
+		return GetConfig(ArgsUseNameFirst, false);
 	}
 
 	private static readonly Dictionary<string, ModConfigurationKey<bool>> patchCategoryKeys = [];
