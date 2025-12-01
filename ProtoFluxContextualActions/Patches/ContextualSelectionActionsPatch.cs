@@ -751,8 +751,8 @@ internal static class ContextualSelectionActionsPatch
 		//if (coder.Property<bool>("SupportsComparison").Value)
 		//{
 		var equalsNode = GetNodeForType(outputType, [
-			new NodeTypeRecord(typeof(IndexOfFirstValueMatch<>), null, null),
-			new NodeTypeRecord(typeof(IndexOfFirstObjectMatch<>), null, null),
+			new NodeTypeRecord(typeof(ValueEquals<>), null, null),
+			new NodeTypeRecord(typeof(ObjectEquals<>), null, null),
 		]);
 		yield return new MenuItem(equalsNode, group: "Generic");
 
