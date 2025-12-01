@@ -39,7 +39,7 @@ public static class DynSpaceHelper
 				Type? dynVar = (typeof(T).IsValueType || typeof(T) == typeof(string)) ? typeof(DynamicValueVariable<>) : typeof(DynamicReferenceVariable<>);
 				newComponent = (DynamicVariableBase<T>)space.Slot.AttachComponent(dynVar.MakeGenericType(typeof(T)));
 			}
-			newComponent.VariableName.Value = space.SpaceName + "/" + variableName;
+			newComponent.VariableName.Value = variableName; //space.SpaceName + "/" + variableName;
 			return newComponent;
 		}
 		else return null;
@@ -126,17 +126,21 @@ public static class DynSpaceHelper
 
 	public static bool TryGetArgOrName<T>(DynamicVariableSpace space, int index, string name, out T value, bool createIfNotExist = true)
 	{
-		bool hasOverride = space.TryReadValue("UseIndex", out bool overrideIndex) || space.TryReadValue("UseNames", out bool overrideNames);
+		bool hasOverride = TryRead(space, "UseIndex", out bool overrideIndex);
 		bool userWantsIndex = ProtoFluxContextualActions.ReadIndexFirst();
 		if ((hasOverride && overrideIndex) || (!hasOverride && userWantsIndex))
 		{
 			if (TryGetArg(space, index, out value, createIfNotExist)) return true;
+			if (createIfNotExist) return true;
 			if (TryGetArg(space, name, out value, createIfNotExist)) return true;
+			if (createIfNotExist) return true;
 		}
 		else
 		{
 			if (TryGetArg(space, name, out value, createIfNotExist)) return true;
+			if (createIfNotExist) return true;
 			if (TryGetArg(space, index, out value, createIfNotExist)) return true;
+			if (createIfNotExist) return true;
 		}
 		return false;
 	}
