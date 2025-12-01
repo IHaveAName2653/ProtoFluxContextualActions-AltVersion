@@ -332,10 +332,12 @@ public static class FluxRecipeConfig
 	{
 		if (target.ChildrenCount == 0) return;
 
-		if (!DynSpaceHelper.TryRead(dynVars, "RecipeName", out string recipeName, true)) return;
-		if (!DynSpaceHelper.TryRead(dynVars, "RecipeIsOutput", out bool recipeIsOutput, true)) return;
-		if (!DynSpaceHelper.TryRead(dynVars, "RecipeRootNode", out Slot recipeRootSlot, true)) return;
-		if (!DynSpaceHelper.TryRead(dynVars, "RecipeType", out Type recipeType, true)) return;
+		bool allVarsExist = true;
+		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeName", out string recipeName, true);
+		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeIsOutput", out bool recipeIsOutput, true);
+		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeRootNode", out Slot recipeRootSlot, true);
+		allVarsExist &= DynSpaceHelper.TryRead(dynVars, "RecipeType", out Type recipeType, true);
+		if (!allVarsExist) return;
 
 
 		if (string.IsNullOrEmpty(recipeName)) return;

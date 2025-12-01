@@ -79,24 +79,24 @@ public class LegacyRecipeStringInterface : DynOverride
 		if (target == "EnsureVars_Data")
 		{
 			var recipeSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxRecipeData", true);
-			DynSpaceHelper.TryRead(recipeSpace, "ThisRecipe", out string _, true);
-			DynSpaceHelper.TryRead(recipeSpace, "AllRecipes", out string _, true);
-			DynSpaceHelper.TryRead(recipeSpace, "AllNames", out string _, true);
-			DynSpaceHelper.TryRead(recipeSpace, "AllRecipeString", out string _, true);
-			DynSpaceHelper.TryRead(recipeSpace, "Recipe", out string _, true);
+			DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "ThisRecipe");
+			DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllRecipes");
+			DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllNames");
+			DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllRecipeString");
+			DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "Recipe");
 		}
 		if (target == "EnsureVars_Maker")
 		{
 			var makerSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxRecipeMaker", true);
-			DynSpaceHelper.TryRead(makerSpace, "RecipeIsOutput", out bool _, true);
-			DynSpaceHelper.TryRead(makerSpace, "RecipeRootNode", out Slot _, true);
-			DynSpaceHelper.TryRead(makerSpace, "RecipeType", out Type _, true);
-			DynSpaceHelper.TryRead(makerSpace, "RecipeName", out string _, true);
+			DynSpaceHelper.EnsureVariableExists<bool>(makerSpace, "RecipeIsOutput");
+			DynSpaceHelper.EnsureVariableExists<Slot>(makerSpace, "RecipeRootNode");
+			DynSpaceHelper.EnsureVariableExists<Type>(makerSpace, "RecipeType");
+			DynSpaceHelper.EnsureVariableExists<string>(makerSpace, "RecipeName");
 		}
 		if (target == "EnsureVars_Construct")
 		{
 			var constructSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxConstructData", true);
-			DynSpaceHelper.TryRead(constructSpace, "Tool", out ProtoFluxTool _, true);
+			DynSpaceHelper.EnsureVariableExists<ProtoFluxTool>(constructSpace, "Tool");
 		}
 
 		if (target == "AddRecipe")

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.Linq;
-using static FrooxEngine.DynamicVariableSpace;
 
 namespace ProtoFluxContextualActions;
 
@@ -72,6 +71,32 @@ public static class DynSpaceHelper
 		}
 
 		value = manager.Value;
+		return true;
+	}
+	public static bool VariableExists<T>(DynamicVariableSpace space, string variableName)
+	{
+		ValueManager<T> manager = space.GetManager<T>(variableName, false);
+		if (manager == null || manager.ReadableValueCount == 0) return false;
+		return true;
+	}
+
+	public static bool EnsureVariableExists<T>(DynamicVariableSpace space, string variableName, T valueIfNotExist)
+	{
+		if (!VariableExists<T>(space, variableName))
+		{
+			TryWrite(space, variableName, valueIfNotExist, true);
+			return false;
+		}
+		return true;
+	}
+	public static bool EnsureVariableExists<T>(DynamicVariableSpace space, string variableName)
+	{
+		if (!VariableExists<T>(space, variableName))
+		{
+			var coder = Traverse.Create(typeof(Coder<T>));
+			TryWrite(space, variableName, coder.Property<T>("Default").Value, true);
+			return false;
+		}
 		return true;
 	}
 }

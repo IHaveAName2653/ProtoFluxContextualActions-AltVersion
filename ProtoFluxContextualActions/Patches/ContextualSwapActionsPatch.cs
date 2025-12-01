@@ -63,11 +63,9 @@ internal static partial class ContextualSwapActionsPatch
 
 	private static readonly ConditionalWeakTable<ProtoFluxTool, ProtoFluxToolData> additionalData = [];
 
-	internal static bool GetSwapActions(ProtoFluxTool __instance, SyncRef<ProtoFluxElementProxy> ____currentProxy)
+	internal static bool GetSwapActions(ProtoFluxTool __instance, ProtoFluxElementProxy elementProxy)
 	{
 		var data = additionalData.GetOrCreateValue(__instance);
-
-		var elementProxy = ____currentProxy.Target;
 
 		//if (elementProxy is null)
 		//{

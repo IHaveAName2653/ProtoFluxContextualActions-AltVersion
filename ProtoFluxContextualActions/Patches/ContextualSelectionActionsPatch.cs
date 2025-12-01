@@ -91,9 +91,8 @@ internal static class ContextualSelectionActionsPatch
 		internal List<FluxRecipeConfig.PartialMenuItem> customItems = customItems;
 	}
 
-	internal static bool GetSelectionActions(ProtoFluxTool tool, SyncRef<ProtoFluxElementProxy> proxy)
+	internal static bool GetSelectionActions(ProtoFluxTool tool, ProtoFluxElementProxy elementProxy)
 	{
-		var elementProxy = proxy.Target;
 		var items = MenuItems(tool)
 			.Where(i => (i.binding ?? i.node).IsValidGenericType(validForInstantiation: true)) // this isn't great, we should instead catch errors before they propigate to here.
 			.ToList();
