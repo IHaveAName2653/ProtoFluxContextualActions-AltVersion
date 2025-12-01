@@ -104,10 +104,4 @@ When using the mod for the first time, a template bind will be created. it is su
 > Instead, set the content to "[]".\
 > That will parse correctly, but have no binds defined.
 
-### Dynamic Impulses
-This system integrates with the dynhook system, so you can modify the config using dynmaic impulses and values.\
-This isnt actually implemented just yet, this part will be updated once it is.
-
-# Flux Recipes
-I dont wanna write this rn i wanna code the dynhook system to have the improved logic brb gonna go do that\
-plus i already wrote so much why would i wanna continue
+## For dynamic variables/impulses, see DynStuff.md
