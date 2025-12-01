@@ -136,6 +136,7 @@ public class RecipeMakerDynOverride : DynOverride
 					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 2, "RecipeRootNode", out Slot recipeRootNode) || recipeRootNode == null;
 					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 3, "RecipeType", out Type recipeType) || recipeType == null;
 					varsExist &= DynSpaceHelper.TryGetArgOrName(variableSpace, 4, "RecipeIsOutput", out bool recipeIsOutput);
+					DynSpaceHelper.TryGetArgOrName(variableSpace, 5, "RecipeColor", out colorX? recipeColor);
 					if (!varsExist) return true;
 					if (recipeSlot == null) return true;
 					if (string.IsNullOrEmpty(recipeName)) return true;
@@ -143,7 +144,7 @@ public class RecipeMakerDynOverride : DynOverride
 					if (recipeType == null) return true;
 
 
-					var recipeVarProvider = new MakerDynVars(recipeName, recipeIsOutput, recipeRootNode, recipeType);
+					var recipeVarProvider = new MakerDynVars(recipeName, recipeIsOutput, recipeRootNode, recipeType, recipeColor);
 					FluxRecipeConfig.RecipeFromSlot(recipeSlot, recipeVarProvider);
 					return false;
 				}
@@ -252,8 +253,14 @@ public class LegacyRecipeStringInterface : DynOverride
 			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeRootNode", out Slot recipeRootNode) && recipeRootNode != null;
 			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeType", out Type recipeType) && recipeType != null;
 			varsExist &= DynSpaceHelper.TryRead(makerSpace, "RecipeIsOutput", out bool recipeIsOutput);
+			DynSpaceHelper.TryRead(makerSpace, "RecipeColor", out colorX? recipeColor);
+
 			if (!varsExist) return true;
-			var recipeVarProvider = new MakerDynVars(recipeName, recipeIsOutput, recipeRootNode, recipeType);
+			if (string.IsNullOrEmpty(recipeName)) return true;
+			if (recipeRootNode == null) return true;
+			if (recipeType == null) return true;
+
+			var recipeVarProvider = new MakerDynVars(recipeName, recipeIsOutput, recipeRootNode, recipeType, recipeColor);
 			FluxRecipeConfig.RecipeFromSlot(hierarchy, recipeVarProvider);
 			return false;
 		}

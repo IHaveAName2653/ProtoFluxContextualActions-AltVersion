@@ -184,7 +184,7 @@ internal static class ContextualSelectionActionsPatch
 
 			if (customItems.Count != 0)
 			{
-				AddSubfolderCustom(tool, elementProxy, menu, "Custom", colorX.LightGray, colorX.Orange, customItems, rootData);
+				AddSubfolderCustom(tool, elementProxy, menu, "Custom", colorX.Orange, customItems, rootData);
 			}
 		});
 	}
@@ -288,7 +288,6 @@ internal static class ContextualSelectionActionsPatch
 		ContextMenu menu,
 		string folderName,
 		colorX color,
-		colorX? itemColor,
 		List<FluxRecipeConfig.PartialMenuItem> items,
 		PageRootData rootData)
 	{
@@ -296,15 +295,13 @@ internal static class ContextualSelectionActionsPatch
 
 		AddMenuFolder(menu, folderName, color, () =>
 		{
-			RebuildCustomPagedMenu(tool, proxy, color, itemColor, PagedItems, 0, rootData);
+			RebuildCustomPagedMenu(tool, proxy, PagedItems, 0, rootData);
 		});
 	}
 
 	private static void RebuildCustomPagedMenu(
 		ProtoFluxTool tool,
 		ProtoFluxElementProxy proxy,
-		colorX color,
-		colorX? itemColor,
 		List<List<FluxRecipeConfig.PartialMenuItem>> PagedItems,
 		int page,
 		PageRootData rootData)
@@ -329,13 +326,13 @@ internal static class ContextualSelectionActionsPatch
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
 					tool.LocalUser.CloseContextMenu(tool);
-					RebuildCustomPagedMenu(tool, proxy, colorX.Orange, colorX.LightGray, PagedItems, page - 1, rootData);
+					RebuildCustomPagedMenu(tool, proxy, PagedItems, page - 1, rootData);
 				};
 			}
 			foreach (var item in PagedItems[page])
 			{
 				var label = (LocaleString)item.DisplayName;
-				var menuItem = newMenu.AddItem(in label, (Uri?)null, colorX.LightGray);
+				var menuItem = newMenu.AddItem(in label, (Uri?)null, item.recipe.customColor ?? colorX.LightGray);
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
 					item.onMenuPress(tool, proxy, item.recipe);
@@ -350,7 +347,7 @@ internal static class ContextualSelectionActionsPatch
 				menuItem.Button.LocalPressed += (button, data) =>
 				{
 					tool.LocalUser.CloseContextMenu(tool);
-					RebuildCustomPagedMenu(tool, proxy, colorX.Cyan, colorX.LightGray, PagedItems, page + 1, rootData);
+					RebuildCustomPagedMenu(tool, proxy, PagedItems, page + 1, rootData);
 				};
 			}
 		});

@@ -336,6 +336,7 @@ public static class FluxRecipeConfig
 		bool recipeIsOutput = dynVars.isOutput;
 		Slot recipeRootSlot = dynVars.rootNode;
 		Type recipeType = dynVars.rootType;
+		colorX? recipeColor = dynVars.customColor;
 
 
 		if (string.IsNullOrEmpty(recipeName)) return;
@@ -352,7 +353,8 @@ public static class FluxRecipeConfig
 			RecipeName = recipeName,
 			IsOutputProxy = recipeIsOutput,
 			AllowedProxyTypes = [recipeType],
-			NodeDefinitions = []
+			NodeDefinitions = [],
+			customColor = recipeColor,
 		};
 
 		Dictionary<INodeOperation, int2> NodeImpulseOut = [];
@@ -466,12 +468,13 @@ public static class FluxRecipeConfig
 	}
 }
 
-public struct FluxRecipe(string name, bool isOutput, List<Type?> types, List<NodeDef> nodes)
+public struct FluxRecipe(string name, bool isOutput, List<Type?> types, List<NodeDef> nodes, colorX? customColor = null)
 {
 	public string RecipeName = name;
 	public bool IsOutputProxy = isOutput;
 	public List<Type?> AllowedProxyTypes = types;
 	public List<NodeDef> NodeDefinitions = nodes;
+	public colorX? customColor = customColor;
 }
 
 public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connections, object? extraData = null)
@@ -489,10 +492,11 @@ public struct NodeDef(bool root, Type? node, float3 offset, List<byte3> connecti
 	public object? ObjectData = extraData;
 }
 
-public struct MakerDynVars(string recipeName, bool isOutput, Slot rootNode, Type rootType)
+public struct MakerDynVars(string recipeName, bool isOutput, Slot rootNode, Type rootType, colorX? customColor = null)
 {
 	public string recipeName = recipeName;
 	public bool isOutput = isOutput;
 	public Slot rootNode = rootNode;
 	public Type rootType = rootType;
+	public colorX? customColor = customColor;
 }
