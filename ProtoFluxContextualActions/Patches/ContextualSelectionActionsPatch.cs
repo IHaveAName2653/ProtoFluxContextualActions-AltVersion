@@ -102,7 +102,7 @@ internal static class ContextualSelectionActionsPatch
 		var rootData = new PageRootData(items, customItems);
 
 
-		if (items.Count != 0)
+		if (items.Count + customItems.Count != 0)
 		{
 			CreateRootItems(tool, elementProxy, rootData);
 
@@ -239,8 +239,7 @@ internal static class ContextualSelectionActionsPatch
 		List<List<MenuItem>> PagedItems,
 		Action<ProtoFluxTool, ProtoFluxElementProxy, MenuItem, ProtoFluxNode> setup,
 		int page,
-		PageRootData rootData
-		)
+		PageRootData rootData)
 	{
 		tool.StartTask(async () =>
 		{
