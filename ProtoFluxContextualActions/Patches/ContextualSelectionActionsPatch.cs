@@ -813,6 +813,7 @@ internal static class ContextualSelectionActionsPatch
 
 			yield return new MenuItem(typeof(DuplicateSlot), group: "Slot Operations");
 			yield return new MenuItem(typeof(DestroySlot), group: "Slot Operations");
+			yield return new MenuItem(typeof(DestroySlotChildren), group: "Slot Operations");
 
 			yield return new MenuItem(typeof(DynamicImpulseTrigger), group: "Impulse");
 
