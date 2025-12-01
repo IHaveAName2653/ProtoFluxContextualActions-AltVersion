@@ -1,5 +1,8 @@
 # ProtoFlux Contextual Actions
 
+Public! After all this time!\
+(This code isnt very good, but im making it public so others can get the mod way easier)
+
 > #### NOTE
 > This is an alternate version to the proper version of the mod.
 This isnt a fork because i was stupid dumb idiot, and a merge would be *difficult*, if not impossible.
