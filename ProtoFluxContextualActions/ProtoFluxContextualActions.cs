@@ -142,9 +142,9 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 		FluxRecipeConfig.OnInit();
 		BindFile.OnInit();
-#if DEBUG
-		AutoUpdater.OnInit();
-#endif
+//#if DEBUG
+		//AutoUpdater.OnInit();
+//#endif
 	}
 
 #if DEBUG
@@ -163,7 +163,7 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 		FluxRecipeConfig.OnInit();
 		BindFile.OnInit();
-		AutoUpdater.OnInit();
+		//AutoUpdater.OnInit();
 	}
 #endif
 
