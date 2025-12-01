@@ -33,7 +33,7 @@ DynVar<string> 0 "RecipeString": The recipe to add to the calling user recipe li
 ### "AddMultiple"
 Has no return.\
 DynVar<string> 0 "RecipeStringArray": The recipes to add to the calling user recipe list.\
-Note: this is in JSON format. to add multiple, either use AddRecipeString, or add all recipes together, seperated by commas, and surround with \[ \]
+Note: this is in JSON format. to add multiple, either use AddRecipeString, or add all recipes together, seperated by commas, and surround with `[ ]`
 ### "RemoveRecipe"
 Has no return.\
 DynVar<string> 0 "TargetRecipe": the name of the recipe to remove
