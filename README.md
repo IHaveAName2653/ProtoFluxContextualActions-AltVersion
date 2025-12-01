@@ -37,7 +37,7 @@ Be sure to check the USING.md file to figure out how the hell this mod actually 
 (This mod is just an excuse to look *really deep* into how frooxengine works)\
 If you use this, i hope you enjoy my (really weird) version of this mod!
 
-### Ok now for the normal gitignore
+### Ok now for the normal readme
 
 ProtoFlux Contextual Actions is a [Resonite Mod Loader](https://github.com/resonite-modding-group/ResoniteModLoader) mod that adds additional context menu actions for different contexts that revolve around protoflux.
 
