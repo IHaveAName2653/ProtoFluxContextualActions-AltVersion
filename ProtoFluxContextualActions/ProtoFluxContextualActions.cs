@@ -71,11 +71,11 @@ public class ProtoFluxContextualActions : ResoniteMod
 	}
 	public static Key GetGrabKey()
 	{
-		return GetConfig(GrabKey, Key.LeftShift);
+		return GetConfig(GrabKey, Key.LeftAlt);
 	}
 	public static Key GetPrimaryKey()
 	{
-		return GetConfig(PrimaryKey, Key.LeftShift);
+		return GetConfig(PrimaryKey, Key.Tab);
 	}
 	public static bool ReadIndexFirst()
 	{
@@ -142,6 +142,9 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 		FluxRecipeConfig.OnInit();
 		BindFile.OnInit();
+#if DEBUG
+		AutoUpdater.OnInit();
+#endif
 	}
 
 #if DEBUG
@@ -160,6 +163,7 @@ public class ProtoFluxContextualActions : ResoniteMod
 
 		FluxRecipeConfig.OnInit();
 		BindFile.OnInit();
+		AutoUpdater.OnInit();
 	}
 #endif
 
