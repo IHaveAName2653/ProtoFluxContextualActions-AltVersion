@@ -112,46 +112,6 @@ public class RecipeDataDynOverride : DynOverride
 			case "Reload":
 				FluxRecipeConfig.ReadFromConfig();
 				return false;
-			case "EnsureVars":
-				{
-					DynSpaceHelper.EnsureVariableExists<string>(variableSpace, "TargetSpace");
-					DynSpaceHelper.EnsureVariableExists<Slot>(variableSpace, "TargetSlot");
-					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "TargetSpace", out string space)) return true;
-					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 1, "TargetSlot", out Slot slot)) return true;
-					if (string.IsNullOrEmpty(space)) return true;
-					if (slot == null) return true;
-
-
-					if (space == "Data")
-					{
-						var recipeSpace = DynSpaceHelper.TryGetSpace(slot, "FluxRecipeData", true);
-						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "ThisRecipe");
-						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllRecipes");
-						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllNames");
-						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "AllRecipeString");
-						DynSpaceHelper.EnsureVariableExists<string>(recipeSpace, "Recipe");
-						return false;
-					}
-					if (space == "Maker")
-					{
-						var makerSpace = DynSpaceHelper.TryGetSpace(slot, "FluxRecipeMaker", true);
-						DynSpaceHelper.EnsureVariableExists<bool>(makerSpace, "RecipeIsOutput");
-						DynSpaceHelper.EnsureVariableExists<Slot>(makerSpace, "RecipeRootNode");
-						DynSpaceHelper.EnsureVariableExists<Type>(makerSpace, "RecipeType");
-						DynSpaceHelper.EnsureVariableExists<string>(makerSpace, "RecipeName");
-						return false;
-					}
-					if (space == "Construct")
-					{
-						var constructSpace = DynSpaceHelper.TryGetSpace(slot, "FluxConstructData", true);
-						DynSpaceHelper.EnsureVariableExists<ProtoFluxTool>(constructSpace, "Tool");
-						return false;
-					}
-
-
-					return true;
-				}
-
 		}
 		return true;
 	}
@@ -165,6 +125,69 @@ public class RecipeMakerDynOverride : DynOverride
 	public override bool InvokeOverride(string FunctionName, Slot target, DynamicVariableSpace? variableSpace, bool excludeDisabled, FrooxEngineContext context)
 	{
 		if (variableSpace == null) return true;
+
+		switch (FunctionName)
+		{
+			case "AddRecipe":
+				{
+					if (!DynSpaceHelper.TryGetArgOrName(variableSpace, 0, "RecipeSlot", out string recipeSlot)) return true;
+					if (recipeSlot == null) return true;
+					var makerSpace = DynSpaceHelper.TryGetSpace(target, "FluxRecipeMaker", true);
+					FluxRecipeConfig.RecipeFromSlot(hierarchy, makerSpace);
+					return false;
+				}
+			case "DetermineRoot":
+				{
+					if (hierarchy == null) return true;
+					var makerSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxRecipeMaker");
+					if (makerSpace == null) return true;
+					ProtoFluxNode node = hierarchy.GetComponent<ProtoFluxNode>();
+					if (node == null) return true;
+					Type nodeType = node.NodeType;
+					if (!nodeType.IsGenericType) return true;
+					Type genericTypeDef = nodeType.GetGenericTypeDefinition();
+					if (genericTypeDef == null) return true;
+					if (!(genericTypeDef == typeof(ValueRelay<>) || genericTypeDef == typeof(ObjectRelay<>))) return true;
+					Type genericType = nodeType.GenericTypeArguments[^1];
+					bool isOutput = false;
+					Slot objectSlot = ((Component)node.GetInput(0).Target).Slot;
+					if (objectSlot != null)
+					{
+						ProtoFluxNode connectedNode = objectSlot.GetComponent<ProtoFluxNode>();
+						Type inputNodeType = connectedNode.NodeType;
+						if (inputNodeType.IsGenericType)
+						{
+							Type? inputType = inputNodeType.GetGenericTypeDefinition();
+							if (inputType == typeof(ExternalValueInput<,>) || inputType == typeof(ExternalObjectInput<,>)) isOutput = true;
+						}
+					}
+					else isOutput = true;
+					DynSpaceHelper.TryWrite(makerSpace, "RecipeIsOutput", isOutput, true);
+					DynSpaceHelper.TryWrite(makerSpace, "RecipeRootNode", hierarchy, true);
+					DynSpaceHelper.TryWrite(makerSpace, "RecipeType", genericType, true);
+					break;
+				}
+			case "BuildToSlot":
+				{
+					if (string.IsNullOrEmpty(variable)) return true;
+					if (hierarchy == null) return true;
+					var constructSpace = DynSpaceHelper.TryGetSpace(hierarchy, "FluxConstructData", true);
+					if (DynSpaceHelper.TryRead(constructSpace, "Tool", out ProtoFluxTool fluxTool, true))
+					{
+						if (fluxTool == null) return true;
+						FluxRecipe? targetRecipe = FluxRecipeConfig.FluxRecipes.Find(recipe => recipe.RecipeName == variable);
+						if (targetRecipe == null) return true;
+						FluxRecipeConfig.ConstructFluxRecipe(
+							fluxTool,
+							null,
+							targetRecipe.Value, true, hierarchy
+						);
+						return false;
+					}
+					break;
+				}
+		}
+
 		return true;
 	}
 }
