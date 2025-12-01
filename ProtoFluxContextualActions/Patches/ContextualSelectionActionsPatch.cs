@@ -708,10 +708,12 @@ internal static class ContextualSelectionActionsPatch
 		{
 			var coder = Traverse.Create(typeof(Coder<>).MakeGenericType(outputType));
 
-			if (coder.Property<bool>("SupportsComparison").Value)
-			{
-				yield return new MenuItem(typeof(ObjectEquals<>).MakeGenericType(outputType), group: "Generic");
-			}
+			//if (coder.Property<bool>("SupportsComparison").Value)
+			//{
+			//yield return new MenuItem(typeof(ObjectEquals<>).MakeGenericType(outputType), group: "Generic");
+			//}
+
+			yield break;
 		}
 	}
 
@@ -748,11 +750,18 @@ internal static class ContextualSelectionActionsPatch
 
 		//if (coder.Property<bool>("SupportsComparison").Value)
 		//{
+		var equalsNode = GetNodeForType(outputType, [
+			new NodeTypeRecord(typeof(IndexOfFirstValueMatch<>), null, null),
+			new NodeTypeRecord(typeof(IndexOfFirstObjectMatch<>), null, null),
+		]);
+		yield return new MenuItem(equalsNode, group: "Generic");
+
 		var firstMatchNode = GetNodeForType(outputType, [
 			new NodeTypeRecord(typeof(IndexOfFirstValueMatch<>), null, null),
 			new NodeTypeRecord(typeof(IndexOfFirstObjectMatch<>), null, null),
 		]);
 		yield return new MenuItem(firstMatchNode, group: "Generic");
+
 
 		var conditionalNode = GetNodeForType(outputType, [
 			new NodeTypeRecord(typeof(ValueConditional<>), null, null),
