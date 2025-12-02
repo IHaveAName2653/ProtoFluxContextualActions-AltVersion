@@ -67,7 +67,6 @@ namespace ProtoFluxContextualActions.Patches;
 [HarmonyPatch(typeof(ProtoFluxTool), nameof(ProtoFluxTool.Update))]
 internal static class ContextualSelectionActionsPatch
 {
-	public static string ProxyTypeName = "Wire";
 	internal readonly struct MenuItem(Type node, string? group = "", Type? binding = null, string? name = null, bool overload = false, Func<ProtoFluxNode, ProtoFluxElementProxy, ProtoFluxTool, bool>? onNodeSpawn = null)
 	{
 		internal readonly Type node = node;
@@ -754,13 +753,13 @@ internal static class ContextualSelectionActionsPatch
 			new NodeTypeRecord(typeof(ValueEquals<>), null, null),
 			new NodeTypeRecord(typeof(ObjectEquals<>), null, null),
 		]);
-		yield return new MenuItem(equalsNode, group: "Generic");
+		yield return new MenuItem(equalsNode, group: "Comparisons");
 
 		var firstMatchNode = GetNodeForType(outputType, [
 			new NodeTypeRecord(typeof(IndexOfFirstValueMatch<>), null, null),
 			new NodeTypeRecord(typeof(IndexOfFirstObjectMatch<>), null, null),
 		]);
-		yield return new MenuItem(firstMatchNode, group: "Generic");
+		yield return new MenuItem(firstMatchNode, group: "Selection");
 
 
 		var conditionalNode = GetNodeForType(outputType, [
@@ -789,9 +788,9 @@ internal static class ContextualSelectionActionsPatch
 
 		if (!outputType.IsValueType)
 		{
-			yield return new MenuItem(typeof(IsNull<>).MakeGenericType(outputType), group: "Object");
-			yield return new MenuItem(typeof(NotNull<>).MakeGenericType(outputType), group: "Object");
-			yield return new MenuItem(typeof(NullCoalesce<>).MakeGenericType(outputType), group: "Object");
+			yield return new MenuItem(typeof(IsNull<>).MakeGenericType(outputType), group: "Comparisons");
+			yield return new MenuItem(typeof(NotNull<>).MakeGenericType(outputType), group: "Comparisons");
+			yield return new MenuItem(typeof(NullCoalesce<>).MakeGenericType(outputType), group: "Selection");
 		}
 		// yield return new MenuItem(typeof(ValueLessThan<>).MakeGenericType(outputType));
 		// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
@@ -1042,16 +1041,16 @@ internal static class ContextualSelectionActionsPatch
 
 		else if (outputType == typeof(DateTime))
 		{
-			yield return new MenuItem(typeof(Sub_DateTime), group: ProxyTypeName);
-			yield return new MenuItem(typeof(Add_DateTime_TimeSpan), group: ProxyTypeName);
+			yield return new MenuItem(typeof(Sub_DateTime), group: "Date Time");
+			yield return new MenuItem(typeof(Add_DateTime_TimeSpan), group: "Date Time");
 		}
 
 		else if (outputType == typeof(BoundingBox))
 		{
-			yield return new MenuItem(typeof(EncapsulateBounds), group: ProxyTypeName);
-			yield return new MenuItem(typeof(EncapsulatePoint), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TransformBounds), group: ProxyTypeName);
-			yield return new MenuItem(typeof(BoundingBoxProperties), group: ProxyTypeName);
+			yield return new MenuItem(typeof(EncapsulateBounds), group: "Bounds");
+			yield return new MenuItem(typeof(EncapsulatePoint), group: "Bounds");
+			yield return new MenuItem(typeof(TransformBounds), group: "Bounds");
+			yield return new MenuItem(typeof(BoundingBoxProperties), group: "Bounds");
 		}
 
 		else if (outputType == typeof(Camera))
@@ -1067,45 +1066,45 @@ internal static class ContextualSelectionActionsPatch
 
 		if (outputType == typeof(UserRef))
 		{
-			yield return new MenuItem(typeof(UserRefAsVariable), group: ProxyTypeName);
+			yield return new MenuItem(typeof(UserRefAsVariable), group: "User Refs");
 		}
 
 		if (outputType == typeof(UserRoot))
 		{
-			yield return new MenuItem(typeof(ActiveUserRootUser), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserRootGlobalScale), group: ProxyTypeName);
-			yield return new MenuItem(typeof(HeadSlot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(HeadPosition), group: ProxyTypeName);
-			yield return new MenuItem(typeof(HeadRotation), group: ProxyTypeName);
+			yield return new MenuItem(typeof(ActiveUserRootUser), group: "User Root");
+			yield return new MenuItem(typeof(UserRootGlobalScale), group: "User Root");
+			yield return new MenuItem(typeof(HeadSlot), group: "User Root");
+			yield return new MenuItem(typeof(HeadPosition), group: "User Root");
+			yield return new MenuItem(typeof(HeadRotation), group: "User Root");
 		}
 
 		if (outputType == typeof(IWorldElement))
 		{
-			yield return new MenuItem(typeof(AllocatingUser), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ReferenceID), group: ProxyTypeName);
-			yield return new MenuItem(typeof(IsRemoved), group: ProxyTypeName);
+			yield return new MenuItem(typeof(AllocatingUser), group: "World Elements");
+			yield return new MenuItem(typeof(ReferenceID), group: "World Elements");
+			yield return new MenuItem(typeof(IsRemoved), group: "World Elements");
 		}
 
 		if (outputType == typeof(User))
 		{
-			yield return new MenuItem(typeof(UserUsername), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserUserID), group: ProxyTypeName);
-			yield return new MenuItem(typeof(IsLocalUser), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserVR_Active), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserRootSlot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserUserRoot), group: ProxyTypeName);
+			yield return new MenuItem(typeof(UserUsername), group: "Users");
+			yield return new MenuItem(typeof(UserUserID), group: "Users");
+			yield return new MenuItem(typeof(IsLocalUser), group: "Users");
+			yield return new MenuItem(typeof(UserVR_Active), group: "Users");
+			yield return new MenuItem(typeof(UserRootSlot), group: "Users");
+			yield return new MenuItem(typeof(UserUserRoot), group: "Users");
 		}
 
 		if (outputType == typeof(BodyNode))
 		{
-			yield return new MenuItem(typeof(BodyNodeSlot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(BodyNodeChirality), group: ProxyTypeName);
-			yield return new MenuItem(typeof(OtherSide), group: ProxyTypeName);
+			yield return new MenuItem(typeof(BodyNodeSlot), group: "Body Nodes");
+			yield return new MenuItem(typeof(BodyNodeChirality), group: "Body Nodes");
+			yield return new MenuItem(typeof(OtherSide), group: "Body Nodes");
 		}
 
 		if (outputType == typeof(Grabber))
 		{
-			yield return new MenuItem(typeof(GrabberBodyNode), group: ProxyTypeName);
+			yield return new MenuItem(typeof(GrabberBodyNode), group: "Grabbers");
 		}
 
 		if (outputType == typeof(CharacterController))
@@ -1122,19 +1121,18 @@ internal static class ContextualSelectionActionsPatch
 
 		if (outputType == typeof(Type))
 		{
-			yield return new MenuItem(typeof(TypeColor), group: ProxyTypeName);
-			yield return new MenuItem(typeof(NiceTypeName), group: ProxyTypeName);
+			yield return new MenuItem(typeof(TypeColor), group: "Types");
+			yield return new MenuItem(typeof(NiceTypeName), group: "Types");
 		}
 
 		if (outputType == typeof(Key))
 		{
-			yield return new MenuItem(typeof(KeyHeld), group: ProxyTypeName);
+			yield return new MenuItem(typeof(KeyHeld), group: "Keys");
 		}
 
 		if (outputType == typeof(object))
 		{
-			yield return new MenuItem(typeof(GetType), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ToString_object), group: ProxyTypeName);
+			yield return new MenuItem(typeof(ToString_object), group: "String Operations");
 		}
 
 		if (outputType.IsEnum)
@@ -1191,7 +1189,9 @@ internal static class ContextualSelectionActionsPatch
 		if (typeof(IComponent).IsAssignableFrom(outputType))
 		{
 			yield return new MenuItem(typeof(GetSlot), group: "Components");
+			yield return new MenuItem(typeof(GetType), group: "Types");
 		}
+		else if (outputType == typeof(object)) yield return new MenuItem(typeof(GetType), group: "Types");
 
 		if (typeof(IGrabbable).IsAssignableFrom(outputType))
 		{
@@ -1334,11 +1334,11 @@ internal static class ContextualSelectionActionsPatch
 
 		if (inputType == typeof(User))
 		{
-			yield return new MenuItem(typeof(LocalUser), group: ProxyTypeName);
-			yield return new MenuItem(typeof(HostUser), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserFromUsername), group: ProxyTypeName);
-			yield return new MenuItem(typeof(GetActiveUser), group: ProxyTypeName);
-			yield return new MenuItem(typeof(GetActiveUserSelf), group: ProxyTypeName);
+			yield return new MenuItem(typeof(LocalUser), group: "Users");
+			yield return new MenuItem(typeof(HostUser), group: "Users");
+			yield return new MenuItem(typeof(UserFromUsername), group: "Users");
+			yield return new MenuItem(typeof(GetActiveUser), group: "Users");
+			yield return new MenuItem(typeof(GetActiveUserSelf), group: "Users");
 
 			List<User> users = [];
 			inputProxy.Slot.World.GetUsers(users);
@@ -1367,86 +1367,86 @@ internal static class ContextualSelectionActionsPatch
 
 		else if (inputType == typeof(UserRoot))
 		{
-			yield return new MenuItem(typeof(GetActiveUserRoot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(LocalUserRoot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(UserUserRoot), group: ProxyTypeName);
+			yield return new MenuItem(typeof(GetActiveUserRoot), group: "User Root");
+			yield return new MenuItem(typeof(LocalUserRoot), group: "User Root");
+			yield return new MenuItem(typeof(UserUserRoot), group: "User Root");
 		}
 
 		else if (inputType == typeof(bool))
 		{
 			// I want to use dummy's here but it's not safe to do so.
-			yield return new MenuItem(typeof(ValueLessThan<int>), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ValueLessOrEqual<int>), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ValueGreaterThan<int>), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ValueGreaterOrEqual<int>), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ValueEquals<int>), group: ProxyTypeName);
+			yield return new MenuItem(typeof(ValueLessThan<int>), group: "Comparisons");
+			yield return new MenuItem(typeof(ValueLessOrEqual<int>), group: "Comparisons");
+			yield return new MenuItem(typeof(ValueGreaterThan<int>), group: "Comparisons");
+			yield return new MenuItem(typeof(ValueGreaterOrEqual<int>), group: "Comparisons");
+			yield return new MenuItem(typeof(ValueEquals<int>), group: "Comparisons");
 		}
 
 		else if (inputType == typeof(DateTime))
 		{
-			yield return new MenuItem(typeof(UtcNow), group: ProxyTypeName);
-			yield return new MenuItem(typeof(FromUnixMilliseconds), group: ProxyTypeName);
+			yield return new MenuItem(typeof(UtcNow), group: "Date Time");
+			yield return new MenuItem(typeof(FromUnixMilliseconds), group: "Date Time");
 		}
 
 		else if (inputType == typeof(TimeSpan))
 		{
-			yield return new MenuItem(typeof(Parse_TimeSpan), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TimeSpanFromTicks), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TimeSpanFromMilliseconds), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TimeSpanFromSeconds), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TimeSpanFromMinutes), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TimeSpanFromHours), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TimeSpanFromDays), group: ProxyTypeName);
+			yield return new MenuItem(typeof(Parse_TimeSpan), group: "Time Spans");
+			yield return new MenuItem(typeof(TimeSpanFromTicks), group: "Time Spans");
+			yield return new MenuItem(typeof(TimeSpanFromMilliseconds), group: "Time Spans");
+			yield return new MenuItem(typeof(TimeSpanFromSeconds), group: "Time Spans");
+			yield return new MenuItem(typeof(TimeSpanFromMinutes), group: "Time Spans");
+			yield return new MenuItem(typeof(TimeSpanFromHours), group: "Time Spans");
+			yield return new MenuItem(typeof(TimeSpanFromDays), group: "Time Spans");
 		}
 
 		else if (inputType == typeof(Slot))
 		{
-			yield return new MenuItem(typeof(RootSlot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(LocalUserSlot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(LocalUserSpace), group: ProxyTypeName);
+			yield return new MenuItem(typeof(RootSlot), group: "Slots");
+			yield return new MenuItem(typeof(LocalUserSlot), group: "Slots");
+			yield return new MenuItem(typeof(LocalUserSpace), group: "Slots");
 		}
 
 		else if (inputType == typeof(BoundingBox))
 		{
-			yield return new MenuItem(typeof(ComputeBoundingBox), group: ProxyTypeName);
-			yield return new MenuItem(typeof(FromCenterSize), group: ProxyTypeName);
-			yield return new MenuItem(typeof(Empty), group: ProxyTypeName);
-			yield return new MenuItem(typeof(EncapsulateBounds), group: ProxyTypeName);
-			yield return new MenuItem(typeof(EncapsulatePoint), group: ProxyTypeName);
-			yield return new MenuItem(typeof(TransformBounds), group: ProxyTypeName);
+			yield return new MenuItem(typeof(ComputeBoundingBox), group: "Bounds");
+			yield return new MenuItem(typeof(FromCenterSize), group: "Bounds");
+			yield return new MenuItem(typeof(Empty), group: "Bounds");
+			yield return new MenuItem(typeof(EncapsulateBounds), group: "Bounds");
+			yield return new MenuItem(typeof(EncapsulatePoint), group: "Bounds");
+			yield return new MenuItem(typeof(TransformBounds), group: "Bounds");
 		}
 
 		else if (inputType == typeof(CharacterController))
 		{
-			yield return new MenuItem(typeof(FindCharacterControllerFromSlot), group: ProxyTypeName);
-			yield return new MenuItem(typeof(FindCharacterControllerFromUser), group: ProxyTypeName);
+			yield return new MenuItem(typeof(FindCharacterControllerFromSlot), group: "Character Controllers");
+			yield return new MenuItem(typeof(FindCharacterControllerFromUser), group: "Character Controllers");
 		}
 
 		else if (inputType == typeof(Type))
 		{
-			yield return new MenuItem(typeof(GetType), group: ProxyTypeName);
+			yield return new MenuItem(typeof(GetType), group: "Types");
 		}
 
 		else if (inputType == typeof(Chirality))
 		{
-			yield return new MenuItem(typeof(BodyNodeChirality), group: ProxyTypeName);
-			yield return new MenuItem(typeof(ToolEquippingSide), group: ProxyTypeName);
+			yield return new MenuItem(typeof(BodyNodeChirality), group: "Chirality");
+			yield return new MenuItem(typeof(ToolEquippingSide), group: "Chirality");
 		}
 
 		else if (inputType == typeof(BodyNode))
 		{
-			yield return new MenuItem(typeof(GrabberBodyNode), group: ProxyTypeName);
+			yield return new MenuItem(typeof(GrabberBodyNode), group: "Body Nodes");
 		}
 
 		else if (inputType == typeof(Grabber))
 		{
-			yield return new MenuItem(typeof(GetUserGrabber), group: ProxyTypeName);
-			yield return new MenuItem(typeof(GrabbableGrabber), group: ProxyTypeName);
+			yield return new MenuItem(typeof(GetUserGrabber), group: "Grabbers");
+			yield return new MenuItem(typeof(GrabbableGrabber), group: "Grabbers");
 		}
 
 		else if (inputType == typeof(Uri))
 		{
-			yield return new MenuItem(typeof(StringToAbsoluteURI), group: ProxyTypeName);
+			yield return new MenuItem(typeof(StringToAbsoluteURI), group: "Uri");
 		}
 
 		else if (TypeUtils.MatchInterface(inputType, typeof(IQuantity<>), out var quantityType))
@@ -1500,7 +1500,7 @@ internal static class ContextualSelectionActionsPatch
 			var enumType = inputType.GetEnumUnderlyingType();
 			if (NodeUtils.TryGetNumberToEnumNode(enumType, out var toNumberType))
 			{
-				yield return new MenuItem(toNumberType.MakeGenericType(inputType), group: ProxyTypeName);
+				yield return new MenuItem(toNumberType.MakeGenericType(inputType), group: "Enums");
 			}
 		}
 
