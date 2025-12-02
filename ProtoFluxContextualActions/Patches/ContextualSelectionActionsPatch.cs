@@ -787,8 +787,12 @@ internal static class ContextualSelectionActionsPatch
 		]);
 		yield return new MenuItem(localChangeVariableNode, group: "Impulse");
 
-		if (!outputType.IsValueType) yield return new MenuItem(typeof(IsNull<>).MakeGenericType(outputType), group: "Object");
-		if (!outputType.IsValueType) yield return new MenuItem(typeof(NotNull<>).MakeGenericType(outputType), group: "Object");
+		if (!outputType.IsValueType)
+		{
+			yield return new MenuItem(typeof(IsNull<>).MakeGenericType(outputType), group: "Object");
+			yield return new MenuItem(typeof(NotNull<>).MakeGenericType(outputType), group: "Object");
+			yield return new MenuItem(typeof(NullCoalesce<>).MakeGenericType(outputType), group: "Object");
+		}
 		// yield return new MenuItem(typeof(ValueLessThan<>).MakeGenericType(outputType));
 		// yield return new MenuItem(typeof(ValueLessOrEqual<>).MakeGenericType(outputType));
 		// yield return new MenuItem(typeof(ValueGreaterThan<>).MakeGenericType(outputType));
