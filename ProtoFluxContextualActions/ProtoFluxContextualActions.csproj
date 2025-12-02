@@ -9,7 +9,7 @@
 		<RepositoryUrl>https://github.com/brecert/ProtoFluxContextualActions</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>Resonite,Mod,ResoniteModLoader,Tweaks,ProtoFlux</PackageTags>
-		<Version>0.1.0.1</Version>
+		<Version>0.1.0.4</Version>
 		<PackageReadmeFile>../README.md</PackageReadmeFile>
 	</PropertyGroup>
 
@@ -83,12 +83,6 @@
       <Compile Remove="Build\**" />
       <EmbeddedResource Remove="Build\**" />
       <None Remove="Build\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="Binds.cs~RF10e2e04.TMP" />
-      <None Remove="Binds.cs~RF7cf793.TMP" />
-      <None Remove="FluxRecipeConfig.cs~RF26221b9.TMP" />
     </ItemGroup>
 
     <ItemGroup>
