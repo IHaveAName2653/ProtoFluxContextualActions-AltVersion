@@ -608,56 +608,56 @@ internal static class ContextualSelectionActionsPatch
 				{
 					if (TryGetPsuedoGenericForType(world, "Slerp_", outputType) is Type slerpType)
 					{
-						yield return new MenuItem(slerpType, group: "Math++");
+						yield return new MenuItem(slerpType, group: "Lerp");
 					}
 
 					if (TryGetPsuedoGenericForType(world, "Pow_", outputType) is Type powType)
 					{
-						yield return new MenuItem(powType, group: "Math++");
+						yield return new MenuItem(powType, group: "Math Operations");
 					}
 
 					if (coder.Property<bool>("SupportsMul").Value)
 					{
-						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Basic Math");
 					}
 
 					if (coder.Property<bool>("SupportsDiv").Value)
 					{
-						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Basic Math");
 					}
 				}
 				else
 				{
 					if (coder.Property<bool>("SupportsAddSub").Value)
 					{
-						yield return new MenuItem(typeof(ValueAdd<>).MakeGenericType(outputType), group: "Common Math");
-						yield return new MenuItem(typeof(ValueSub<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueAdd<>).MakeGenericType(outputType), group: "Basic Math");
+						yield return new MenuItem(typeof(ValueSub<>).MakeGenericType(outputType), group: "Basic Math");
 					}
 
 					if (coder.Property<bool>("SupportsMul").Value)
 					{
-						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Common Math");
-						yield return new MenuItem(typeof(ValueSquare<>).MakeGenericType(outputType), group: "Math++");
+						yield return new MenuItem(typeof(ValueMul<>).MakeGenericType(outputType), group: "Basic Math");
+						yield return new MenuItem(typeof(ValueSquare<>).MakeGenericType(outputType), group: "Math Operations");
 					}
 
 					if (coder.Property<bool>("SupportsDiv").Value)
 					{
-						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueDiv<>).MakeGenericType(outputType), group: "Basic Math");
 					}
 
 					if (coder.Property<bool>("SupportsNegate").Value)
 					{
-						yield return new MenuItem(typeof(ValueNegate<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueNegate<>).MakeGenericType(outputType), group: "Math Operations");
 					}
 
 					if (coder.Property<bool>("SupportsMod").Value)
 					{
-						yield return new MenuItem(typeof(ValueMod<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueMod<>).MakeGenericType(outputType), group: "Math Operations");
 					}
 
 					if (coder.Property<bool>("SupportsAbs").Value && !isMatrix)
 					{
-						yield return new MenuItem(typeof(ValueAbs<>).MakeGenericType(outputType), group: "Math++");
+						yield return new MenuItem(typeof(ValueAbs<>).MakeGenericType(outputType), group: "Math Operations");
 					}
 
 					if (coder.Property<bool>("SupportsComparison").Value)
@@ -673,17 +673,17 @@ internal static class ContextualSelectionActionsPatch
 					// New elements placed at the end
 					if (coder.Property<bool>("SupportsLerp").Value)
 					{
-						yield return new MenuItem(typeof(ValueLerp<>).MakeGenericType(outputType), group: "Math++");
+						yield return new MenuItem(typeof(ValueLerp<>).MakeGenericType(outputType), group: "Lerp");
 					}
 					if (coder.Property<bool>("SupportsSmoothLerp").Value)
 					{
-						yield return new MenuItem(typeof(ValueSmoothLerp<>).MakeGenericType(outputType), group: "Math++");
+						yield return new MenuItem(typeof(ValueSmoothLerp<>).MakeGenericType(outputType), group: "Lerp");
 					}
 
 					if (coder.Property<bool>("SupportsAddSub").Value)
 					{
-						yield return new MenuItem(typeof(ValueInc<>).MakeGenericType(outputType), group: "Common Math");
-						yield return new MenuItem(typeof(ValueDec<>).MakeGenericType(outputType), group: "Common Math");
+						yield return new MenuItem(typeof(ValueInc<>).MakeGenericType(outputType), group: "Math Operations");
+						yield return new MenuItem(typeof(ValueDec<>).MakeGenericType(outputType), group: "Math Operations");
 					}
 				}
 
