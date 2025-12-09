@@ -1,3 +1,8 @@
+# THIS REPO IS NO LONGER IN USE
+go look at [the current repo](https://github.com/IHaveAName2653/ProtoFluxContextualActions) instead
+
+this one will not be used for anything anymore, and may be deleted soon as well.
+
 # ProtoFlux Contextual Actions
 
 Public! After all this time!\
